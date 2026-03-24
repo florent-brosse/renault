@@ -144,14 +144,19 @@
       "name": "ds_ev_trend",
       "displayName": "Tendance EV vs Thermique",
       "queryLines": [
-        "SELECT ",
-        "  CONCAT(year, '-', LPAD(month, 2, '0')) AS mois, ",
-        "  SUM(nb_electrique) AS electrique, ",
-        "  SUM(nb_hybride) AS hybride, ",
-        "  SUM(nb_listings) - SUM(nb_electrique) - SUM(nb_hybride) AS thermique ",
-        "FROM serverless_stable_le1wzb_catalog.car_sales.model_performance ",
-        "GROUP BY year, month ",
-        "ORDER BY mois"
+        "SELECT mois, energie, nb FROM ( ",
+        "  SELECT CONCAT(year, '-', LPAD(month, 2, '0')) AS mois, ",
+        "    'Électrique' AS energie, SUM(nb_electrique) AS nb ",
+        "  FROM serverless_stable_le1wzb_catalog.car_sales.model_performance GROUP BY year, month ",
+        "  UNION ALL ",
+        "  SELECT CONCAT(year, '-', LPAD(month, 2, '0')), ",
+        "    'Hybride', SUM(nb_hybride) ",
+        "  FROM serverless_stable_le1wzb_catalog.car_sales.model_performance GROUP BY year, month ",
+        "  UNION ALL ",
+        "  SELECT CONCAT(year, '-', LPAD(month, 2, '0')), ",
+        "    'Thermique', SUM(nb_listings) - SUM(nb_electrique) - SUM(nb_hybride) ",
+        "  FROM serverless_stable_le1wzb_catalog.car_sales.model_performance GROUP BY year, month ",
+        ") ORDER BY mois, energie"
       ]
     },
     {
@@ -469,13 +474,25 @@
         {
           "widget": {
             "name": "w_ev_trend",
-            "queries": [{"name": "main_query", "query": {"datasetName": "ds_ev_trend", "fields": [{"name": "mois", "expression": "`mois`"}, {"name": "electrique", "expression": "`electrique`"}, {"name": "hybride", "expression": "`hybride`"}, {"name": "thermique", "expression": "`thermique`"}], "disaggregated": true}}],
+            "queries": [{"name": "main_query", "query": {"datasetName": "ds_ev_trend", "fields": [{"name": "mois", "expression": "`mois`"}, {"name": "energie", "expression": "`energie`"}, {"name": "nb", "expression": "`nb`"}], "disaggregated": true}}],
             "spec": {
               "version": 3,
               "widgetType": "area",
               "encodings": {
                 "x": {"fieldName": "mois", "scale": {"type": "categorical"}, "displayName": "Mois"},
-                "y": {"fieldName": "electrique", "scale": {"type": "quantitative"}, "displayName": "Électrique"}
+                "y": {"fieldName": "nb", "scale": {"type": "quantitative"}, "displayName": "Nombre"},
+                "color": {
+                  "fieldName": "energie",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {"value": "Électrique", "color": "#00A972"},
+                      {"value": "Hybride", "color": "#1B8FD1"},
+                      {"value": "Thermique", "color": "#919191"}
+                    ]
+                  },
+                  "displayName": "Énergie"
+                }
               },
               "frame": {"showTitle": true, "title": "Évolution EV vs Hybride vs Thermique"}
             }
