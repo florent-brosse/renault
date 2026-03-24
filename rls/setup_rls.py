@@ -95,6 +95,7 @@ GROUP_POLICIES = [
     {"idp_group": "groupe_claro",     "allowed": ["GRP-08"], "label": "Groupe Claro"},
 ]
 
+abac_success = False
 for gp in GROUP_POLICIES:
     allowed_sql = "ARRAY(" + ", ".join(f"'{g}'" for g in gp["allowed"]) + ")"
     policy_name = f"rls_{gp['idp_group']}"
@@ -110,24 +111,101 @@ for gp in GROUP_POLICIES:
         USING COLUMNS (grp, {allowed_sql})
         """)
         print(f"Policy {policy_name} created for `{gp['idp_group']}` → {gp['allowed']}")
+        abac_success = True
     except Exception as e:
         print(f"Policy {policy_name} failed: {e}")
+        break
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 4. Verify setup
+# MAGIC ## 3b. Fallback: manual row filters (if ABAC not supported)
+# MAGIC
+# MAGIC Uses a simpler UDF with a mapping table instead of ABAC policies.
+
+# COMMAND ----------
+
+if not abac_success:
+    print("ABAC policies not supported on this workspace — using manual row filters\n")
+
+    # Create mapping table
+    spark.sql(f"""
+    CREATE TABLE IF NOT EXISTS {CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping (
+      user_or_group STRING,
+      group_id STRING,
+      group_name STRING,
+      is_admin BOOLEAN
+    ) USING DELTA
+    """)
+
+    sample_mappings = [
+        ("admin@renault.com", None, None, True),
+    ] + [
+        (gp["idp_group"], gp["allowed"][0], gp["label"], False)
+        for gp in GROUP_POLICIES
+    ]
+    df = spark.createDataFrame(sample_mappings, ["user_or_group", "group_id", "group_name", "is_admin"])
+    df.write.mode("overwrite").option("overwriteSchema", "true").saveAsTable(f"{CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping")
+    print(f"Mapping table: {len(sample_mappings)} entries")
+
+    # Create simple row filter UDF
+    spark.sql(f"""
+    CREATE OR REPLACE FUNCTION {CATALOG}.{SCHEMA_CAR_SALES}.rls_filter(row_group_id STRING)
+    RETURNS BOOLEAN
+    RETURN
+      EXISTS (
+        SELECT 1 FROM {CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping
+        WHERE user_or_group = current_user() AND is_admin = TRUE
+      )
+      OR EXISTS (
+        SELECT 1 FROM {CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping
+        WHERE group_id = row_group_id
+          AND (user_or_group = current_user() OR IS_ACCOUNT_GROUP_MEMBER(user_or_group))
+      )
+    """)
+    print("Row filter UDF created")
+
+    # Apply to Gold tables
+    for table in gold_tables_with_rls:
+        fqn = f"{CATALOG}.{SCHEMA_CAR_SALES}.{table}"
+        try:
+            spark.sql(f"ALTER TABLE {fqn} SET ROW FILTER {CATALOG}.{SCHEMA_CAR_SALES}.rls_filter ON (group_id)")
+            print(f"Row filter applied to {fqn}")
+        except Exception as e:
+            print(f"  {fqn}: {e}")
+
+    # Add current user as admin so they can see all data
+    current_user = spark.sql("SELECT current_user()").collect()[0][0]
+    spark.sql(f"""
+    INSERT INTO {CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping
+    VALUES ('{current_user}', NULL, NULL, TRUE)
+    """)
+    print(f"\nAdded {current_user} as admin")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## 4. Verify RLS
 
 # COMMAND ----------
 
 current_user = spark.sql("SELECT current_user()").collect()[0][0]
 print(f"Current user: {current_user}")
-print(f"\nABAC policies created for {len(GROUP_POLICIES)} concession groups:")
-for gp in GROUP_POLICIES:
-    print(f"  `{gp['idp_group']}` → sees {gp['allowed']}")
-print(f"\nAdmins / workspace owners see all data (not matched by any policy)")
-print(f"\nTagged tables:")
-for t in gold_tables_with_rls:
-    print(f"  {CATALOG}.{SCHEMA_CAR_SALES}.{t}")
-print(f"\nTo test: add your user to one of the IdP groups above,")
-print(f"  then query a Gold table — only matching rows are returned.")
+
+# Test: count per group (admin should see all)
+df_test = spark.sql(f"""
+SELECT group_id, count(*) as cnt
+FROM {CATALOG}.{SCHEMA_CAR_SALES}.listings_detail
+GROUP BY group_id ORDER BY group_id
+""")
+df_test.show()
+
+total = spark.sql(f"SELECT count(*) FROM {CATALOG}.{SCHEMA_CAR_SALES}.listings_detail").collect()[0][0]
+groups = spark.sql(f"SELECT count(distinct group_id) FROM {CATALOG}.{SCHEMA_CAR_SALES}.listings_detail").collect()[0][0]
+print(f"\nVisible: {total:,} rows across {groups} groups")
+
+if not abac_success:
+    print(f"\nTo test restricted access:")
+    print(f"  INSERT INTO {CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping")
+    print(f"  VALUES ('{current_user}', 'GRP-01', 'Groupe Bernard', FALSE)")
+    print(f"  -- Then re-query: only GRP-01 rows visible")
