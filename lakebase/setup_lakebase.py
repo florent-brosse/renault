@@ -115,21 +115,90 @@ for cfg in SYNC_CONFIG:
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 4. Summary
+# MAGIC ## 4. Query the Data API (REST)
 # MAGIC
-# MAGIC Once synced, query data in Postgres via pgrest:
-# MAGIC ```sql
-# MAGIC SELECT * FROM "car_sales"."listings_detail_synced" WHERE group_id = 'GRP-01';
-# MAGIC ```
+# MAGIC Once Data API is enabled (Lakebase UI → Data API → Enable), query via HTTP.
+# MAGIC Uses workspace token for authentication.
+
+# COMMAND ----------
+
+import requests
+
+workspace_url = w.config.host.rstrip("/")
+workspace_id = dbutils.notebook.entry_point.getDbutils().notebook().getContext().workspaceId().get()
+workspace_token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
+
+DATA_API_BASE = f"https://{workspace_url.replace('https://', '')}/api/2.0/workspace/{workspace_id}/rest/databricks_postgres/public"
+rest_headers = {"Authorization": f"Bearer {workspace_token}"}
+
+print(f"Data API: {DATA_API_BASE}")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC #### REST GET — All listings for Groupe Bernard
+
+# COMMAND ----------
+
+try:
+    resp = requests.get(
+        f"{DATA_API_BASE}/listings_detail_synced",
+        headers=rest_headers,
+        params={"group_id": "eq.GRP-01", "limit": "5"}
+    )
+    if resp.status_code == 200:
+        data = resp.json()
+        print(f"Data API returned {len(data)} rows for GRP-01")
+        if data:
+            import pandas as pd
+            display(spark.createDataFrame(pd.DataFrame(data)))
+    else:
+        print(f"Data API response: {resp.status_code} — {resp.text[:200]}")
+        print("Ensure Data API is enabled: Lakebase UI → Data API → Enable")
+except Exception as e:
+    print(f"Data API test: {e}")
+    print("Ensure Data API is enabled and synced tables are online.")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC #### REST GET — Concession KPIs filtered by region
+
+# COMMAND ----------
+
+try:
+    resp = requests.get(
+        f"{DATA_API_BASE}/concession_daily_kpis_synced",
+        headers=rest_headers,
+        params={"region": "eq.Île-de-France", "limit": "10", "order": "sale_date.desc"}
+    )
+    if resp.status_code == 200:
+        data = resp.json()
+        print(f"Data API returned {len(data)} KPI rows for Île-de-France")
+        if data:
+            import pandas as pd
+            display(spark.createDataFrame(pd.DataFrame(data)))
+    else:
+        print(f"Response: {resp.status_code}")
+except Exception as e:
+    print(f"Data API test: {e}")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## 5. Summary
 
 # COMMAND ----------
 
 print("=" * 60)
-print("  LAKEBASE SYNCED TABLES SETUP COMPLETE")
+print("  LAKEBASE SETUP COMPLETE")
 print("=" * 60)
 print(f"\n  Lakebase project: {LAKEBASE_PROJECT}")
 print(f"\n  Synced tables (Delta → Lakebase Postgres):")
 for cfg in SYNC_CONFIG:
-    print(f"    {CATALOG}.car_sales.{cfg['table']} → \"car_sales\".\"{cfg['table']}_synced\"")
+    print(f"    {CATALOG}.car_sales.{cfg['table']} → \"{cfg['table']}_synced\"")
 print(f"\n  Sync mode: TRIGGERED")
-print(f"\n  Postgres access: connect to Lakebase endpoint, query \"car_sales\".\"*_synced\" tables")
+print(f"\n  Data API (PostgREST):")
+print(f"    Base URL: {DATA_API_BASE}")
+print(f"    Example: GET {DATA_API_BASE}/listings_detail_synced?group_id=eq.GRP-01")
+print(f"\n  Manual step: Enable Data API in Lakebase UI if not done")
