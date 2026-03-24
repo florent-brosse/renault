@@ -73,15 +73,15 @@ for conc in concessions:
         m = car_models[model_idx]
 
         # Year immat (weighted toward recent)
-        year_max = m["year_range"][1]
-        year_min = m["year_range"][0]
+        year_max = m["year_max"]
+        year_min = m["year_min"]
         year_immat = min(year_max, max(year_min, year_max - int(rng.random() * 3) ** 2))
 
         age = next_date.year - year_immat
         dep = DEPRECIATION.get(min(age, 10), 0.20)
 
         # Price
-        base_price = m["base_price_range"][0] + rng.random() * (m["base_price_range"][1] - m["base_price_range"][0])
+        base_price = m["price_min"] + rng.random() * (m["price_max"] - m["price_min"])
         price = int(round(base_price * dep * (0.9 + rng.random() * 0.2), 0))
 
         # Condition

@@ -7,6 +7,7 @@ variables:
     default: renault_demo
 
 workspace:
+  host: https://fevm-serverless-stable-le1wzb.cloud.databricks.com
   root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
 
 targets:
@@ -14,7 +15,7 @@ targets:
     default: true
     mode: development
     variables:
-      catalog: renault_demo
+      catalog: serverless_stable_le1wzb_catalog
 
 resources:
   # ─── Declarative Pipeline: Bronze → Silver → Gold ───
@@ -58,16 +59,6 @@ resources:
             - task_key: run_pipeline
           notebook_task:
             notebook_path: ./rls/setup_rls.py
-            source: WORKSPACE
-            base_parameters:
-              catalog: ${var.catalog}
-          environment_key: default
-
-        - task_key: setup_lakebase
-          depends_on:
-            - task_key: run_pipeline
-          notebook_task:
-            notebook_path: ./lakebase/setup_lakebase.py
             source: WORKSPACE
             base_parameters:
               catalog: ${var.catalog}

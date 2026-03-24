@@ -54,7 +54,7 @@ print(f"Volume path: {VOLUME_PATH}")
 concessions = generate_concessions(seed=42)
 car_models = generate_car_models()
 groups = generate_concession_groups()
-dim_date_rows = generate_dim_date(date(2024, 1, 1), date(2025, 12, 31))
+dim_date_rows = generate_dim_date(date.fromisoformat(DATE_START), date.fromisoformat(DATE_END))
 
 DIM_TBLPROPS = {"delta.enableChangeDataFeed": "true", "delta.enableRowTracking": "true"}
 
@@ -66,7 +66,7 @@ for name, data, label in [
 ]:
     fqn = f"{CATALOG}.{SCHEMA_CAR_SALES}.{name}"
     df = spark.createDataFrame(data)
-    df.write.mode("overwrite").saveAsTable(fqn)
+    df.write.mode("overwrite").option("overwriteSchema", "true").saveAsTable(fqn)
     for k, v in DIM_TBLPROPS.items():
         spark.sql(f"ALTER TABLE {fqn} SET TBLPROPERTIES ('{k}' = '{v}')")
     print(f"{name}: {label} -> {fqn}")
@@ -179,10 +179,7 @@ df_sales = df_sales.withColumn("model_hash",
 df_sales = df_sales.join(
     F.broadcast(df_models.select(
         "model_idx", "model_id", "brand", "model", "version", "segment",
-        F.col("base_price_range").getItem(0).alias("price_min"),
-        F.col("base_price_range").getItem(1).alias("price_max"),
-        F.col("year_range").getItem(0).alias("year_min"),
-        F.col("year_range").getItem(1).alias("year_max"),
+        "price_min", "price_max", "year_min", "year_max",
     )),
     df_sales["model_hash"] == df_models["model_idx"],
     "inner"

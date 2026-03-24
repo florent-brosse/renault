@@ -27,7 +27,7 @@ VOLUME_PATH = f"/Volumes/{CATALOG}/{SCHEMA_LANDING}/{VOLUME_NAME}"
 NUM_CONCESSIONS = 50
 NUM_CONCESSION_GROUPS = 8
 NUM_MODELS = 30
-DATE_START = "2024-01-01"
+DATE_START = "2025-10-01"
 DATE_END = "2025-12-31"
 
 # Sales per concession per day (used cars listed/sold)
@@ -61,39 +61,39 @@ CONCESSION_GROUPS = [
 
 CAR_MODELS = [
     # Renault models
-    {"model_id": "MOD-01", "brand": "Renault", "model": "Clio", "version": "V", "segment": "B", "base_price_range": (12000, 22000), "year_range": (2019, 2025)},
-    {"model_id": "MOD-02", "brand": "Renault", "model": "Clio", "version": "IV", "segment": "B", "base_price_range": (6000, 14000), "year_range": (2012, 2019)},
-    {"model_id": "MOD-03", "brand": "Renault", "model": "Captur", "version": "II", "segment": "B-SUV", "base_price_range": (15000, 28000), "year_range": (2019, 2025)},
-    {"model_id": "MOD-04", "brand": "Renault", "model": "Captur", "version": "I", "segment": "B-SUV", "base_price_range": (8000, 16000), "year_range": (2013, 2019)},
-    {"model_id": "MOD-05", "brand": "Renault", "model": "Mégane", "version": "IV", "segment": "C", "base_price_range": (12000, 25000), "year_range": (2016, 2023)},
-    {"model_id": "MOD-06", "brand": "Renault", "model": "Mégane E-Tech", "version": "I", "segment": "C-EV", "base_price_range": (28000, 42000), "year_range": (2022, 2025)},
-    {"model_id": "MOD-07", "brand": "Renault", "model": "Austral", "version": "I", "segment": "C-SUV", "base_price_range": (28000, 42000), "year_range": (2022, 2025)},
-    {"model_id": "MOD-08", "brand": "Renault", "model": "Arkana", "version": "I", "segment": "C-SUV", "base_price_range": (25000, 38000), "year_range": (2021, 2025)},
-    {"model_id": "MOD-09", "brand": "Renault", "model": "Scenic E-Tech", "version": "V", "segment": "C-EV", "base_price_range": (35000, 48000), "year_range": (2024, 2025)},
-    {"model_id": "MOD-10", "brand": "Renault", "model": "Espace", "version": "VI", "segment": "D-SUV", "base_price_range": (38000, 52000), "year_range": (2023, 2025)},
-    {"model_id": "MOD-11", "brand": "Renault", "model": "Kangoo", "version": "III", "segment": "Ludospace", "base_price_range": (20000, 32000), "year_range": (2021, 2025)},
-    {"model_id": "MOD-12", "brand": "Renault", "model": "Twingo", "version": "III", "segment": "A", "base_price_range": (8000, 16000), "year_range": (2014, 2024)},
-    {"model_id": "MOD-13", "brand": "Renault", "model": "Twingo E-Tech", "version": "III", "segment": "A-EV", "base_price_range": (18000, 26000), "year_range": (2020, 2024)},
-    {"model_id": "MOD-14", "brand": "Renault", "model": "Zoe", "version": "II", "segment": "B-EV", "base_price_range": (15000, 28000), "year_range": (2019, 2024)},
-    {"model_id": "MOD-15", "brand": "Renault", "model": "R5 E-Tech", "version": "I", "segment": "B-EV", "base_price_range": (25000, 35000), "year_range": (2024, 2025)},
-    {"model_id": "MOD-16", "brand": "Renault", "model": "Trafic", "version": "III", "segment": "VU", "base_price_range": (25000, 42000), "year_range": (2014, 2025)},
-    {"model_id": "MOD-17", "brand": "Renault", "model": "Master", "version": "III", "segment": "VU", "base_price_range": (30000, 50000), "year_range": (2014, 2025)},
+    {"model_id": "MOD-01", "brand": "Renault", "model": "Clio", "version": "V", "segment": "B", "price_min": 12000, "price_max": 22000, "year_min": 2019, "year_max": 2025},
+    {"model_id": "MOD-02", "brand": "Renault", "model": "Clio", "version": "IV", "segment": "B", "price_min": 6000, "price_max": 14000, "year_min": 2012, "year_max": 2019},
+    {"model_id": "MOD-03", "brand": "Renault", "model": "Captur", "version": "II", "segment": "B-SUV", "price_min": 15000, "price_max": 28000, "year_min": 2019, "year_max": 2025},
+    {"model_id": "MOD-04", "brand": "Renault", "model": "Captur", "version": "I", "segment": "B-SUV", "price_min": 8000, "price_max": 16000, "year_min": 2013, "year_max": 2019},
+    {"model_id": "MOD-05", "brand": "Renault", "model": "Mégane", "version": "IV", "segment": "C", "price_min": 12000, "price_max": 25000, "year_min": 2016, "year_max": 2023},
+    {"model_id": "MOD-06", "brand": "Renault", "model": "Mégane E-Tech", "version": "I", "segment": "C-EV", "price_min": 28000, "price_max": 42000, "year_min": 2022, "year_max": 2025},
+    {"model_id": "MOD-07", "brand": "Renault", "model": "Austral", "version": "I", "segment": "C-SUV", "price_min": 28000, "price_max": 42000, "year_min": 2022, "year_max": 2025},
+    {"model_id": "MOD-08", "brand": "Renault", "model": "Arkana", "version": "I", "segment": "C-SUV", "price_min": 25000, "price_max": 38000, "year_min": 2021, "year_max": 2025},
+    {"model_id": "MOD-09", "brand": "Renault", "model": "Scenic E-Tech", "version": "V", "segment": "C-EV", "price_min": 35000, "price_max": 48000, "year_min": 2024, "year_max": 2025},
+    {"model_id": "MOD-10", "brand": "Renault", "model": "Espace", "version": "VI", "segment": "D-SUV", "price_min": 38000, "price_max": 52000, "year_min": 2023, "year_max": 2025},
+    {"model_id": "MOD-11", "brand": "Renault", "model": "Kangoo", "version": "III", "segment": "Ludospace", "price_min": 20000, "price_max": 32000, "year_min": 2021, "year_max": 2025},
+    {"model_id": "MOD-12", "brand": "Renault", "model": "Twingo", "version": "III", "segment": "A", "price_min": 8000, "price_max": 16000, "year_min": 2014, "year_max": 2024},
+    {"model_id": "MOD-13", "brand": "Renault", "model": "Twingo E-Tech", "version": "III", "segment": "A-EV", "price_min": 18000, "price_max": 26000, "year_min": 2020, "year_max": 2024},
+    {"model_id": "MOD-14", "brand": "Renault", "model": "Zoe", "version": "II", "segment": "B-EV", "price_min": 15000, "price_max": 28000, "year_min": 2019, "year_max": 2024},
+    {"model_id": "MOD-15", "brand": "Renault", "model": "R5 E-Tech", "version": "I", "segment": "B-EV", "price_min": 25000, "price_max": 35000, "year_min": 2024, "year_max": 2025},
+    {"model_id": "MOD-16", "brand": "Renault", "model": "Trafic", "version": "III", "segment": "VU", "price_min": 25000, "price_max": 42000, "year_min": 2014, "year_max": 2025},
+    {"model_id": "MOD-17", "brand": "Renault", "model": "Master", "version": "III", "segment": "VU", "price_min": 30000, "price_max": 50000, "year_min": 2014, "year_max": 2025},
     # Dacia models
-    {"model_id": "MOD-18", "brand": "Dacia", "model": "Sandero", "version": "III", "segment": "B", "base_price_range": (9000, 16000), "year_range": (2020, 2025)},
-    {"model_id": "MOD-19", "brand": "Dacia", "model": "Sandero", "version": "II", "segment": "B", "base_price_range": (5000, 11000), "year_range": (2016, 2020)},
-    {"model_id": "MOD-20", "brand": "Dacia", "model": "Duster", "version": "III", "segment": "B-SUV", "base_price_range": (18000, 28000), "year_range": (2024, 2025)},
-    {"model_id": "MOD-21", "brand": "Dacia", "model": "Duster", "version": "II", "segment": "B-SUV", "base_price_range": (12000, 22000), "year_range": (2018, 2024)},
-    {"model_id": "MOD-22", "brand": "Dacia", "model": "Jogger", "version": "I", "segment": "C-MPV", "base_price_range": (15000, 24000), "year_range": (2022, 2025)},
-    {"model_id": "MOD-23", "brand": "Dacia", "model": "Spring", "version": "I", "segment": "A-EV", "base_price_range": (12000, 20000), "year_range": (2021, 2025)},
+    {"model_id": "MOD-18", "brand": "Dacia", "model": "Sandero", "version": "III", "segment": "B", "price_min": 9000, "price_max": 16000, "year_min": 2020, "year_max": 2025},
+    {"model_id": "MOD-19", "brand": "Dacia", "model": "Sandero", "version": "II", "segment": "B", "price_min": 5000, "price_max": 11000, "year_min": 2016, "year_max": 2020},
+    {"model_id": "MOD-20", "brand": "Dacia", "model": "Duster", "version": "III", "segment": "B-SUV", "price_min": 18000, "price_max": 28000, "year_min": 2024, "year_max": 2025},
+    {"model_id": "MOD-21", "brand": "Dacia", "model": "Duster", "version": "II", "segment": "B-SUV", "price_min": 12000, "price_max": 22000, "year_min": 2018, "year_max": 2024},
+    {"model_id": "MOD-22", "brand": "Dacia", "model": "Jogger", "version": "I", "segment": "C-MPV", "price_min": 15000, "price_max": 24000, "year_min": 2022, "year_max": 2025},
+    {"model_id": "MOD-23", "brand": "Dacia", "model": "Spring", "version": "I", "segment": "A-EV", "price_min": 12000, "price_max": 20000, "year_min": 2021, "year_max": 2025},
     # Alpine
-    {"model_id": "MOD-24", "brand": "Alpine", "model": "A110", "version": "II", "segment": "Sport", "base_price_range": (50000, 80000), "year_range": (2017, 2025)},
-    {"model_id": "MOD-25", "brand": "Alpine", "model": "A290", "version": "I", "segment": "B-EV", "base_price_range": (35000, 45000), "year_range": (2025, 2025)},
+    {"model_id": "MOD-24", "brand": "Alpine", "model": "A110", "version": "II", "segment": "Sport", "price_min": 50000, "price_max": 80000, "year_min": 2017, "year_max": 2025},
+    {"model_id": "MOD-25", "brand": "Alpine", "model": "A290", "version": "I", "segment": "B-EV", "price_min": 35000, "price_max": 45000, "year_min": 2025, "year_max": 2025},
     # Older Renault (occasion only)
-    {"model_id": "MOD-26", "brand": "Renault", "model": "Scénic", "version": "IV", "segment": "C-MPV", "base_price_range": (10000, 22000), "year_range": (2016, 2022)},
-    {"model_id": "MOD-27", "brand": "Renault", "model": "Kadjar", "version": "I", "segment": "C-SUV", "base_price_range": (10000, 22000), "year_range": (2015, 2022)},
-    {"model_id": "MOD-28", "brand": "Renault", "model": "Talisman", "version": "I", "segment": "D", "base_price_range": (12000, 25000), "year_range": (2015, 2022)},
-    {"model_id": "MOD-29", "brand": "Renault", "model": "Koleos", "version": "II", "segment": "D-SUV", "base_price_range": (15000, 30000), "year_range": (2017, 2023)},
-    {"model_id": "MOD-30", "brand": "Renault", "model": "Clio", "version": "III", "segment": "B", "base_price_range": (3000, 8000), "year_range": (2005, 2012)},
+    {"model_id": "MOD-26", "brand": "Renault", "model": "Scénic", "version": "IV", "segment": "C-MPV", "price_min": 10000, "price_max": 22000, "year_min": 2016, "year_max": 2022},
+    {"model_id": "MOD-27", "brand": "Renault", "model": "Kadjar", "version": "I", "segment": "C-SUV", "price_min": 10000, "price_max": 22000, "year_min": 2015, "year_max": 2022},
+    {"model_id": "MOD-28", "brand": "Renault", "model": "Talisman", "version": "I", "segment": "D", "price_min": 12000, "price_max": 25000, "year_min": 2015, "year_max": 2022},
+    {"model_id": "MOD-29", "brand": "Renault", "model": "Koleos", "version": "II", "segment": "D-SUV", "price_min": 15000, "price_max": 30000, "year_min": 2017, "year_max": 2023},
+    {"model_id": "MOD-30", "brand": "Renault", "model": "Clio", "version": "III", "segment": "B", "price_min": 3000, "price_max": 8000, "year_min": 2005, "year_max": 2012},
 ]
 
 # COMMAND ----------
