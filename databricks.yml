@@ -19,11 +19,12 @@ targets:
 
 resources:
   # ─── Lakebase Postgres Project ───
-  postgres_projects:
-    renault_lakebase:
-      project_id: renault-lakebase
-      display_name: "Renault Lakebase"
-      pg_version: 17
+  # ─── Lakebase (uncomment when workspace supports CREATE CATALOG) ───
+  # postgres_projects:
+  #   renault_lakebase:
+  #     project_id: renault-lakebase
+  #     display_name: "Renault Lakebase"
+  #     pg_version: 17
 
   # ─── Declarative Pipeline: Bronze → Silver → Gold ───
   pipelines:
@@ -71,15 +72,16 @@ resources:
               catalog: ${var.catalog}
           environment_key: default
 
-        - task_key: setup_lakebase
-          depends_on:
-            - task_key: run_pipeline
-          notebook_task:
-            notebook_path: ./lakebase/setup_lakebase.py
-            source: WORKSPACE
-            base_parameters:
-              catalog: ${var.catalog}
-          environment_key: default
+        # Lakebase setup — uncomment when workspace supports CREATE CATALOG
+        # - task_key: setup_lakebase
+        #   depends_on:
+        #     - task_key: run_pipeline
+        #   notebook_task:
+        #     notebook_path: ./lakebase/setup_lakebase.py
+        #     source: WORKSPACE
+        #     base_parameters:
+        #       catalog: ${var.catalog}
+        #   environment_key: default
 
         - task_key: create_genie_space
           depends_on:
