@@ -341,17 +341,17 @@
             "name": "w_group_table",
             "queries": [{"name": "main_query", "query": {"datasetName": "ds_group_scorecard", "fields": [{"name": "group_name", "expression": "`group_name`"}, {"name": "nb_annonces", "expression": "`nb_annonces`"}, {"name": "chiffre_affaires", "expression": "`chiffre_affaires`"}, {"name": "prix_moyen", "expression": "`prix_moyen`"}, {"name": "part_ev_pct", "expression": "`part_ev_pct`"}, {"name": "part_neuf_pct", "expression": "`part_neuf_pct`"}, {"name": "nb_concessions", "expression": "`nb_concessions`"}], "disaggregated": true}}],
             "spec": {
-              "version": 1,
+              "version": 2,
               "widgetType": "table",
               "encodings": {
                 "columns": [
-                  {"fieldName": "group_name", "type": "string", "displayAs": "string", "title": "Groupe", "displayName": "Groupe"},
-                  {"fieldName": "nb_concessions", "type": "integer", "displayAs": "number", "title": "Concessions", "alignContent": "right"},
-                  {"fieldName": "nb_annonces", "type": "integer", "displayAs": "number", "title": "Annonces", "alignContent": "right"},
-                  {"fieldName": "chiffre_affaires", "type": "float", "displayAs": "number", "numberFormat": "#,##0 €", "title": "CA (€)", "alignContent": "right"},
-                  {"fieldName": "prix_moyen", "type": "float", "displayAs": "number", "numberFormat": "#,##0 €", "title": "Prix Moyen", "alignContent": "right"},
-                  {"fieldName": "part_ev_pct", "type": "float", "displayAs": "number", "numberFormat": "0.0%", "title": "Part EV (%)", "alignContent": "right"},
-                  {"fieldName": "part_neuf_pct", "type": "float", "displayAs": "number", "numberFormat": "0.0%", "title": "Part Neuf (%)", "alignContent": "right"}
+                  {"fieldName": "group_name", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Groupe"},
+                  {"fieldName": "nb_concessions", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Concessions"},
+                  {"fieldName": "nb_annonces", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Annonces"},
+                  {"fieldName": "chiffre_affaires", "booleanValues": ["true", "false"], "displayAs": "number", "title": "CA (€)"},
+                  {"fieldName": "prix_moyen", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Prix Moyen"},
+                  {"fieldName": "part_ev_pct", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Part EV (%)"},
+                  {"fieldName": "part_neuf_pct", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Part Neuf (%)"}
                 ]
               },
               "frame": {"showTitle": true, "title": "Scorecard par Groupe de Concessions"}
@@ -407,18 +407,18 @@
             "name": "w_model_table",
             "queries": [{"name": "main_query", "query": {"datasetName": "ds_model_perf", "fields": [{"name": "marque", "expression": "`marque`"}, {"name": "modele", "expression": "`modele`"}, {"name": "version", "expression": "`version`"}, {"name": "segment", "expression": "`segment`"}, {"name": "nb_annonces", "expression": "`nb_annonces`"}, {"name": "chiffre_affaires", "expression": "`chiffre_affaires`"}, {"name": "prix_moyen", "expression": "`prix_moyen`"}, {"name": "nb_ev", "expression": "`nb_ev`"}], "disaggregated": true}}],
             "spec": {
-              "version": 1,
+              "version": 2,
               "widgetType": "table",
               "encodings": {
                 "columns": [
-                  {"fieldName": "marque", "type": "string", "displayAs": "string", "title": "Marque", "displayName": "Marque"},
-                  {"fieldName": "modele", "type": "string", "displayAs": "string", "title": "Modèle"},
-                  {"fieldName": "version", "type": "string", "displayAs": "string", "title": "Version"},
-                  {"fieldName": "segment", "type": "string", "displayAs": "string", "title": "Segment"},
-                  {"fieldName": "nb_annonces", "type": "integer", "displayAs": "number", "title": "Annonces", "alignContent": "right"},
-                  {"fieldName": "chiffre_affaires", "type": "float", "displayAs": "number", "numberFormat": "#,##0 €", "title": "CA (€)", "alignContent": "right"},
-                  {"fieldName": "prix_moyen", "type": "float", "displayAs": "number", "numberFormat": "#,##0 €", "title": "Prix Moyen", "alignContent": "right"},
-                  {"fieldName": "nb_ev", "type": "integer", "displayAs": "number", "title": "EV", "alignContent": "right"}
+                  {"fieldName": "marque", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Marque"},
+                  {"fieldName": "modele", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Modèle"},
+                  {"fieldName": "version", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Version"},
+                  {"fieldName": "segment", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Segment"},
+                  {"fieldName": "nb_annonces", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Annonces"},
+                  {"fieldName": "chiffre_affaires", "booleanValues": ["true", "false"], "displayAs": "number", "title": "CA (€)"},
+                  {"fieldName": "prix_moyen", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Prix Moyen"},
+                  {"fieldName": "nb_ev", "booleanValues": ["true", "false"], "displayAs": "number", "title": "EV"}
                 ]
               },
               "frame": {"showTitle": true, "title": "Performance par Modèle"}
@@ -586,24 +586,24 @@
             "name": "w_listings_table",
             "queries": [{"name": "main_query", "query": {"datasetName": "ds_listings_detail", "fields": [{"name": "listing_id", "expression": "`listing_id`"}, {"name": "date_vente", "expression": "`date_vente`"}, {"name": "concession", "expression": "`concession`"}, {"name": "region", "expression": "`region`"}, {"name": "groupe", "expression": "`groupe`"}, {"name": "marque", "expression": "`marque`"}, {"name": "modele", "expression": "`modele`"}, {"name": "version", "expression": "`version`"}, {"name": "segment", "expression": "`segment`"}, {"name": "annee_immat", "expression": "`annee_immat`"}, {"name": "km", "expression": "`km`"}, {"name": "energie", "expression": "`energie`"}, {"name": "etat", "expression": "`etat`"}, {"name": "prix", "expression": "`prix`"}, {"name": "nb_photos", "expression": "`nb_photos`"}], "disaggregated": true}}],
             "spec": {
-              "version": 1,
+              "version": 2,
               "widgetType": "table",
               "encodings": {
                 "columns": [
-                  {"fieldName": "date_vente", "type": "date", "displayAs": "string", "title": "Date", "displayName": "Date"},
-                  {"fieldName": "concession", "type": "string", "displayAs": "string", "title": "Concession"},
-                  {"fieldName": "region", "type": "string", "displayAs": "string", "title": "Région"},
-                  {"fieldName": "groupe", "type": "string", "displayAs": "string", "title": "Groupe"},
-                  {"fieldName": "marque", "type": "string", "displayAs": "string", "title": "Marque"},
-                  {"fieldName": "modele", "type": "string", "displayAs": "string", "title": "Modèle"},
-                  {"fieldName": "version", "type": "string", "displayAs": "string", "title": "Version"},
-                  {"fieldName": "segment", "type": "string", "displayAs": "string", "title": "Segment"},
-                  {"fieldName": "annee_immat", "type": "integer", "displayAs": "number", "title": "Année", "alignContent": "right"},
-                  {"fieldName": "km", "type": "integer", "displayAs": "number", "numberFormat": "#,##0", "title": "Km", "alignContent": "right"},
-                  {"fieldName": "energie", "type": "string", "displayAs": "string", "title": "Énergie"},
-                  {"fieldName": "etat", "type": "string", "displayAs": "string", "title": "État"},
-                  {"fieldName": "prix", "type": "integer", "displayAs": "number", "numberFormat": "#,##0 €", "title": "Prix", "alignContent": "right"},
-                  {"fieldName": "nb_photos", "type": "integer", "displayAs": "number", "title": "Photos", "alignContent": "right"}
+                  {"fieldName": "date_vente", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Date"},
+                  {"fieldName": "concession", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Concession"},
+                  {"fieldName": "region", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Région"},
+                  {"fieldName": "groupe", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Groupe"},
+                  {"fieldName": "marque", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Marque"},
+                  {"fieldName": "modele", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Modèle"},
+                  {"fieldName": "version", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Version"},
+                  {"fieldName": "segment", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Segment"},
+                  {"fieldName": "annee_immat", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Année"},
+                  {"fieldName": "km", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Km"},
+                  {"fieldName": "energie", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Énergie"},
+                  {"fieldName": "etat", "booleanValues": ["true", "false"], "displayAs": "string", "title": "État"},
+                  {"fieldName": "prix", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Prix"},
+                  {"fieldName": "nb_photos", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Photos"}
                 ]
               },
               "frame": {"showTitle": true, "title": "Détail des Annonces"}
