@@ -195,139 +195,398 @@
         {
           "widget": {
             "name": "w_kpi_annonces",
-            "queries": [{"name": "main_query", "query": {"datasetName": "ds_overview_kpis", "fields": [{"name": "total_annonces", "expression": "`total_annonces`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_overview_kpis",
+                  "fields": [
+                    {
+                      "name": "total_annonces",
+                      "expression": "`total_annonces`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
             "spec": {
               "version": 2,
               "widgetType": "counter",
               "encodings": {
-                "value": {"fieldName": "total_annonces", "displayName": "Total Annonces"}
+                "value": {
+                  "fieldName": "total_annonces",
+                  "displayName": "Total Annonces"
+                }
               },
-              "frame": {"showTitle": true, "title": "Total Annonces"}
+              "frame": {
+                "showTitle": true,
+                "title": "Total Annonces"
+              }
             }
           },
-          "position": {"x": 0, "y": 0, "width": 1, "height": 2}
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 2
+          }
         },
         {
           "widget": {
             "name": "w_kpi_ca",
-            "queries": [{"name": "main_query", "query": {"datasetName": "ds_overview_kpis", "fields": [{"name": "chiffre_affaires", "expression": "`chiffre_affaires`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_overview_kpis",
+                  "fields": [
+                    {
+                      "name": "chiffre_affaires",
+                      "expression": "`chiffre_affaires`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
             "spec": {
               "version": 2,
               "widgetType": "counter",
               "encodings": {
-                "value": {"fieldName": "chiffre_affaires", "displayName": "Chiffre d'Affaires (€)"}
+                "value": {
+                  "fieldName": "chiffre_affaires",
+                  "displayName": "Chiffre d'Affaires (€)"
+                }
               },
-              "frame": {"showTitle": true, "title": "Chiffre d'Affaires (€)"}
+              "frame": {
+                "showTitle": true,
+                "title": "Chiffre d'Affaires (€)"
+              }
             }
           },
-          "position": {"x": 1, "y": 0, "width": 2, "height": 2}
+          "position": {
+            "x": 1,
+            "y": 0,
+            "width": 2,
+            "height": 2
+          }
         },
         {
           "widget": {
             "name": "w_kpi_prix",
-            "queries": [{"name": "main_query", "query": {"datasetName": "ds_overview_kpis", "fields": [{"name": "prix_moyen", "expression": "`prix_moyen`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_overview_kpis",
+                  "fields": [
+                    {
+                      "name": "prix_moyen",
+                      "expression": "`prix_moyen`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
             "spec": {
               "version": 2,
               "widgetType": "counter",
               "encodings": {
-                "value": {"fieldName": "prix_moyen", "displayName": "Prix Moyen (€)"}
+                "value": {
+                  "fieldName": "prix_moyen",
+                  "displayName": "Prix Moyen (€)"
+                }
               },
-              "frame": {"showTitle": true, "title": "Prix Moyen (€)"}
+              "frame": {
+                "showTitle": true,
+                "title": "Prix Moyen (€)"
+              }
             }
           },
-          "position": {"x": 3, "y": 0, "width": 1, "height": 2}
+          "position": {
+            "x": 3,
+            "y": 0,
+            "width": 1,
+            "height": 2
+          }
         },
         {
           "widget": {
             "name": "w_kpi_ev",
-            "queries": [{"name": "main_query", "query": {"datasetName": "ds_overview_kpis", "fields": [{"name": "part_ev_pct", "expression": "`part_ev_pct`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_overview_kpis",
+                  "fields": [
+                    {
+                      "name": "part_ev_pct",
+                      "expression": "`part_ev_pct`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
             "spec": {
               "version": 2,
               "widgetType": "counter",
               "encodings": {
-                "value": {"fieldName": "part_ev_pct", "displayName": "Part Électrique (%)"}
+                "value": {
+                  "fieldName": "part_ev_pct",
+                  "displayName": "Part Électrique (%)"
+                }
               },
-              "frame": {"showTitle": true, "title": "Part Électrique (%)"}
+              "frame": {
+                "showTitle": true,
+                "title": "Part Électrique (%)"
+              }
             }
           },
-          "position": {"x": 4, "y": 0, "width": 1, "height": 2}
+          "position": {
+            "x": 4,
+            "y": 0,
+            "width": 1,
+            "height": 2
+          }
         },
         {
           "widget": {
             "name": "w_kpi_neuf_occ",
-            "queries": [{"name": "main_query", "query": {"datasetName": "ds_overview_kpis", "fields": [{"name": "total_neuf", "expression": "`total_neuf`"}, {"name": "total_occasion", "expression": "`total_occasion`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_overview_kpis",
+                  "fields": [
+                    {
+                      "name": "total_neuf",
+                      "expression": "`total_neuf`"
+                    },
+                    {
+                      "name": "total_occasion",
+                      "expression": "`total_occasion`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
             "spec": {
               "version": 2,
               "widgetType": "counter",
               "encodings": {
-                "value": {"fieldName": "total_neuf", "displayName": "Véhicules Neufs"}
+                "value": {
+                  "fieldName": "total_neuf",
+                  "displayName": "Véhicules Neufs"
+                }
               },
-              "frame": {"showTitle": true, "title": "Neufs / Occasions"}
+              "frame": {
+                "showTitle": true,
+                "title": "Neufs / Occasions"
+              }
             }
           },
-          "position": {"x": 5, "y": 0, "width": 1, "height": 2}
+          "position": {
+            "x": 5,
+            "y": 0,
+            "width": 1,
+            "height": 2
+          }
         },
         {
           "widget": {
             "name": "w_revenue_trend",
-            "queries": [{"name": "main_query", "query": {"datasetName": "ds_revenue_trend", "fields": [{"name": "mois", "expression": "`mois`"}, {"name": "chiffre_affaires", "expression": "`chiffre_affaires`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_revenue_trend",
+                  "fields": [
+                    {
+                      "name": "mois",
+                      "expression": "`mois`"
+                    },
+                    {
+                      "name": "chiffre_affaires",
+                      "expression": "`chiffre_affaires`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
             "spec": {
               "version": 3,
               "widgetType": "area",
               "encodings": {
-                "x": {"fieldName": "mois", "scale": {"type": "temporal"}, "displayName": "Mois"},
-                "y": {"fieldName": "chiffre_affaires", "scale": {"type": "quantitative"}, "displayName": "Chiffre d'Affaires (€)"}
+                "x": {
+                  "fieldName": "mois",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "displayName": "Mois"
+                },
+                "y": {
+                  "fieldName": "chiffre_affaires",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Chiffre d'Affaires (€)"
+                }
               },
-              "frame": {"showTitle": true, "title": "Évolution du Chiffre d'Affaires par Mois"},
-              "mark": {"colors": ["#1B3A5C"]}
+              "frame": {
+                "showTitle": true,
+                "title": "Évolution du Chiffre d'Affaires par Mois"
+              },
+              "mark": {
+                "colors": [
+                  "#1B3A5C"
+                ]
+              }
             }
           },
-          "position": {"x": 0, "y": 2, "width": 4, "height": 5}
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 4,
+            "height": 5
+          }
         },
         {
           "widget": {
             "name": "w_energy_mix",
-            "queries": [{"name": "main_query", "query": {"datasetName": "ds_energy_mix", "fields": [{"name": "nb", "expression": "`nb`"}, {"name": "energie", "expression": "`energie`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_energy_mix",
+                  "fields": [
+                    {
+                      "name": "nb",
+                      "expression": "`nb`"
+                    },
+                    {
+                      "name": "energie",
+                      "expression": "`energie`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
             "spec": {
               "version": 3,
               "widgetType": "pie",
               "encodings": {
-                "angle": {"fieldName": "nb", "scale": {"type": "quantitative"}, "displayName": "Nombre"},
+                "angle": {
+                  "fieldName": "nb",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Nombre"
+                },
                 "color": {
                   "fieldName": "energie",
                   "scale": {
                     "type": "categorical",
                     "mappings": [
-                      {"value": "Électrique", "color": "#00A972"},
-                      {"value": "Hybride", "color": "#1B8FD1"},
-                      {"value": "Thermique", "color": "#919191"}
+                      {
+                        "value": "Électrique",
+                        "color": "#00A972"
+                      },
+                      {
+                        "value": "Hybride",
+                        "color": "#1B8FD1"
+                      },
+                      {
+                        "value": "Thermique",
+                        "color": "#919191"
+                      }
                     ]
                   },
                   "displayName": "Énergie"
                 }
               },
-              "frame": {"showTitle": true, "title": "Mix Énergie"}
+              "frame": {
+                "showTitle": true,
+                "title": "Mix Énergie"
+              }
             }
           },
-          "position": {"x": 4, "y": 2, "width": 2, "height": 5}
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 5
+          }
         },
         {
           "widget": {
             "name": "w_listings_region",
-            "queries": [{"name": "main_query", "query": {"datasetName": "ds_listings_region", "fields": [{"name": "region", "expression": "`region`"}, {"name": "nb_annonces", "expression": "`nb_annonces`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_listings_region",
+                  "fields": [
+                    {
+                      "name": "region",
+                      "expression": "`region`"
+                    },
+                    {
+                      "name": "nb_annonces",
+                      "expression": "`nb_annonces`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
             "spec": {
               "version": 3,
               "widgetType": "bar",
               "encodings": {
-                "x": {"fieldName": "region", "scale": {"type": "categorical", "sort": {"by": "y-reversed"}}, "displayName": "Région"},
-                "y": {"fieldName": "nb_annonces", "scale": {"type": "quantitative"}, "displayName": "Nombre d'Annonces"},
-                "label": {"show": true}
+                "x": {
+                  "fieldName": "region",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  },
+                  "displayName": "Région"
+                },
+                "y": {
+                  "fieldName": "nb_annonces",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Nombre d'Annonces"
+                },
+                "label": {
+                  "show": true
+                }
               },
-              "frame": {"showTitle": true, "title": "Annonces par Région"},
-              "mark": {"colors": ["#1B3A5C"]}
+              "frame": {
+                "showTitle": true,
+                "title": "Annonces par Région"
+              },
+              "mark": {
+                "colors": [
+                  "#1B3A5C"
+                ]
+              }
             }
           },
-          "position": {"x": 0, "y": 7, "width": 6, "height": 5}
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 6,
+            "height": 5
+          }
         }
       ]
     },
@@ -339,61 +598,344 @@
         {
           "widget": {
             "name": "w_group_table",
-            "queries": [{"name": "main_query", "query": {"datasetName": "ds_group_scorecard", "fields": [{"name": "group_name", "expression": "`group_name`"}, {"name": "nb_annonces", "expression": "`nb_annonces`"}, {"name": "chiffre_affaires", "expression": "`chiffre_affaires`"}, {"name": "prix_moyen", "expression": "`prix_moyen`"}, {"name": "part_ev_pct", "expression": "`part_ev_pct`"}, {"name": "part_neuf_pct", "expression": "`part_neuf_pct`"}, {"name": "nb_concessions", "expression": "`nb_concessions`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_group_scorecard",
+                  "fields": [
+                    {
+                      "name": "group_name",
+                      "expression": "`group_name`"
+                    },
+                    {
+                      "name": "nb_annonces",
+                      "expression": "`nb_annonces`"
+                    },
+                    {
+                      "name": "chiffre_affaires",
+                      "expression": "`chiffre_affaires`"
+                    },
+                    {
+                      "name": "prix_moyen",
+                      "expression": "`prix_moyen`"
+                    },
+                    {
+                      "name": "part_ev_pct",
+                      "expression": "`part_ev_pct`"
+                    },
+                    {
+                      "name": "part_neuf_pct",
+                      "expression": "`part_neuf_pct`"
+                    },
+                    {
+                      "name": "nb_concessions",
+                      "expression": "`nb_concessions`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
             "spec": {
-              "version": 2,
-              "widgetType": "table",
+              "allowHTMLByDefault": false,
+              "condensed": true,
               "encodings": {
                 "columns": [
-                  {"fieldName": "group_name", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Groupe"},
-                  {"fieldName": "nb_concessions", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Concessions"},
-                  {"fieldName": "nb_annonces", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Annonces"},
-                  {"fieldName": "chiffre_affaires", "booleanValues": ["true", "false"], "displayAs": "number", "title": "CA (€)"},
-                  {"fieldName": "prix_moyen", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Prix Moyen"},
-                  {"fieldName": "part_ev_pct", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Part EV (%)"},
-                  {"fieldName": "part_neuf_pct", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Part Neuf (%)"}
+                  {
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "string",
+                    "displayName": "Groupe",
+                    "fieldName": "group_name",
+                    "order": 10000,
+                    "preserveWhitespace": false,
+                    "title": "Groupe",
+                    "type": "string",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "right",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "number",
+                    "displayName": "Concessions",
+                    "fieldName": "nb_concessions",
+                    "order": 20000,
+                    "preserveWhitespace": false,
+                    "title": "Concessions",
+                    "type": "float",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "right",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "number",
+                    "displayName": "Annonces",
+                    "fieldName": "nb_annonces",
+                    "order": 30000,
+                    "preserveWhitespace": false,
+                    "title": "Annonces",
+                    "type": "float",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "right",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "number",
+                    "displayName": "CA (€)",
+                    "fieldName": "chiffre_affaires",
+                    "order": 40000,
+                    "preserveWhitespace": false,
+                    "title": "CA (€)",
+                    "type": "float",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "right",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "number",
+                    "displayName": "Prix Moyen",
+                    "fieldName": "prix_moyen",
+                    "order": 50000,
+                    "preserveWhitespace": false,
+                    "title": "Prix Moyen",
+                    "type": "float",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "right",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "number",
+                    "displayName": "Part EV (%)",
+                    "fieldName": "part_ev_pct",
+                    "order": 60000,
+                    "preserveWhitespace": false,
+                    "title": "Part EV (%)",
+                    "type": "float",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "right",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "number",
+                    "displayName": "Part Neuf (%)",
+                    "fieldName": "part_neuf_pct",
+                    "order": 70000,
+                    "preserveWhitespace": false,
+                    "title": "Part Neuf (%)",
+                    "type": "float",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  }
                 ]
               },
-              "frame": {"showTitle": true, "title": "Scorecard par Groupe de Concessions"}
+              "frame": {
+                "showTitle": true,
+                "title": "Scorecard par Groupe de Concessions"
+              },
+              "invisibleColumns": [],
+              "itemsPerPage": 25,
+              "paginationSize": "default",
+              "version": 1,
+              "widgetType": "table",
+              "withRowNumber": false
             }
           },
-          "position": {"x": 0, "y": 0, "width": 6, "height": 5}
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 5
+          }
         },
         {
           "widget": {
             "name": "w_concession_trend",
-            "queries": [{"name": "main_query", "query": {"datasetName": "ds_concession_daily", "fields": [{"name": "semaine", "expression": "`semaine`"}, {"name": "group_name", "expression": "`group_name`"}, {"name": "chiffre_affaires", "expression": "`chiffre_affaires`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_concession_daily",
+                  "fields": [
+                    {
+                      "name": "semaine",
+                      "expression": "`semaine`"
+                    },
+                    {
+                      "name": "group_name",
+                      "expression": "`group_name`"
+                    },
+                    {
+                      "name": "chiffre_affaires",
+                      "expression": "`chiffre_affaires`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
             "spec": {
               "version": 3,
               "widgetType": "line",
               "encodings": {
-                "x": {"fieldName": "semaine", "scale": {"type": "temporal"}, "displayName": "Semaine"},
-                "y": {"fieldName": "chiffre_affaires", "scale": {"type": "quantitative"}, "displayName": "CA (€)"},
-                "color": {"fieldName": "group_name", "scale": {"type": "categorical"}, "displayName": "Groupe"}
+                "x": {
+                  "fieldName": "semaine",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "displayName": "Semaine"
+                },
+                "y": {
+                  "fieldName": "chiffre_affaires",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "CA (€)"
+                },
+                "color": {
+                  "fieldName": "group_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Groupe"
+                }
               },
-              "frame": {"showTitle": true, "title": "Tendance CA Hebdomadaire par Groupe"}
+              "frame": {
+                "showTitle": true,
+                "title": "Tendance CA Hebdomadaire par Groupe"
+              }
             }
           },
-          "position": {"x": 0, "y": 5, "width": 6, "height": 5}
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 6,
+            "height": 5
+          }
         },
         {
           "widget": {
             "name": "w_top_concessions",
-            "queries": [{"name": "main_query", "query": {"datasetName": "ds_top_concessions", "fields": [{"name": "concession_name", "expression": "`concession_name`"}, {"name": "chiffre_affaires", "expression": "`chiffre_affaires`"}, {"name": "group_name", "expression": "`group_name`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_top_concessions",
+                  "fields": [
+                    {
+                      "name": "concession_name",
+                      "expression": "`concession_name`"
+                    },
+                    {
+                      "name": "chiffre_affaires",
+                      "expression": "`chiffre_affaires`"
+                    },
+                    {
+                      "name": "group_name",
+                      "expression": "`group_name`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
             "spec": {
               "version": 3,
               "widgetType": "bar",
               "encodings": {
-                "x": {"fieldName": "concession_name", "scale": {"type": "categorical", "sort": {"by": "y-reversed"}}, "displayName": "Concession"},
-                "y": {"fieldName": "chiffre_affaires", "scale": {"type": "quantitative"}, "displayName": "CA (€)"},
-                "color": {"fieldName": "group_name", "scale": {"type": "categorical"}, "displayName": "Groupe"},
-                "label": {"show": true}
+                "x": {
+                  "fieldName": "concession_name",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  },
+                  "displayName": "Concession"
+                },
+                "y": {
+                  "fieldName": "chiffre_affaires",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "CA (€)"
+                },
+                "color": {
+                  "fieldName": "group_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Groupe"
+                },
+                "label": {
+                  "show": true
+                }
               },
-              "frame": {"showTitle": true, "title": "Top 10 Concessions par CA"},
-              "mark": {"colors": ["#1B3A5C", "#1B8FD1", "#00A972", "#FFAB00", "#FF3621", "#8BCAE7", "#AB4057", "#99DDB4"]}
+              "frame": {
+                "showTitle": true,
+                "title": "Top 10 Concessions par CA"
+              },
+              "mark": {
+                "colors": [
+                  "#1B3A5C",
+                  "#1B8FD1",
+                  "#00A972",
+                  "#FFAB00",
+                  "#FF3621",
+                  "#8BCAE7",
+                  "#AB4057",
+                  "#99DDB4"
+                ]
+              }
             }
           },
-          "position": {"x": 0, "y": 10, "width": 6, "height": 5}
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 6,
+            "height": 5
+          }
         }
       ]
     },
@@ -405,99 +947,430 @@
         {
           "widget": {
             "name": "w_model_table",
-            "queries": [{"name": "main_query", "query": {"datasetName": "ds_model_perf", "fields": [{"name": "marque", "expression": "`marque`"}, {"name": "modele", "expression": "`modele`"}, {"name": "version", "expression": "`version`"}, {"name": "segment", "expression": "`segment`"}, {"name": "nb_annonces", "expression": "`nb_annonces`"}, {"name": "chiffre_affaires", "expression": "`chiffre_affaires`"}, {"name": "prix_moyen", "expression": "`prix_moyen`"}, {"name": "nb_ev", "expression": "`nb_ev`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_model_perf",
+                  "fields": [
+                    {
+                      "name": "marque",
+                      "expression": "`marque`"
+                    },
+                    {
+                      "name": "modele",
+                      "expression": "`modele`"
+                    },
+                    {
+                      "name": "version",
+                      "expression": "`version`"
+                    },
+                    {
+                      "name": "segment",
+                      "expression": "`segment`"
+                    },
+                    {
+                      "name": "nb_annonces",
+                      "expression": "`nb_annonces`"
+                    },
+                    {
+                      "name": "chiffre_affaires",
+                      "expression": "`chiffre_affaires`"
+                    },
+                    {
+                      "name": "prix_moyen",
+                      "expression": "`prix_moyen`"
+                    },
+                    {
+                      "name": "nb_ev",
+                      "expression": "`nb_ev`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
             "spec": {
-              "version": 2,
-              "widgetType": "table",
+              "allowHTMLByDefault": false,
+              "condensed": true,
               "encodings": {
                 "columns": [
-                  {"fieldName": "marque", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Marque"},
-                  {"fieldName": "modele", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Modèle"},
-                  {"fieldName": "version", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Version"},
-                  {"fieldName": "segment", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Segment"},
-                  {"fieldName": "nb_annonces", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Annonces"},
-                  {"fieldName": "chiffre_affaires", "booleanValues": ["true", "false"], "displayAs": "number", "title": "CA (€)"},
-                  {"fieldName": "prix_moyen", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Prix Moyen"},
-                  {"fieldName": "nb_ev", "booleanValues": ["true", "false"], "displayAs": "number", "title": "EV"}
+                  {
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "string",
+                    "displayName": "Marque",
+                    "fieldName": "marque",
+                    "order": 10000,
+                    "preserveWhitespace": false,
+                    "title": "Marque",
+                    "type": "string",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "string",
+                    "displayName": "Modèle",
+                    "fieldName": "modele",
+                    "order": 20000,
+                    "preserveWhitespace": false,
+                    "title": "Modèle",
+                    "type": "string",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "string",
+                    "displayName": "Version",
+                    "fieldName": "version",
+                    "order": 30000,
+                    "preserveWhitespace": false,
+                    "title": "Version",
+                    "type": "string",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "string",
+                    "displayName": "Segment",
+                    "fieldName": "segment",
+                    "order": 40000,
+                    "preserveWhitespace": false,
+                    "title": "Segment",
+                    "type": "string",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "right",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "number",
+                    "displayName": "Annonces",
+                    "fieldName": "nb_annonces",
+                    "order": 50000,
+                    "preserveWhitespace": false,
+                    "title": "Annonces",
+                    "type": "float",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "right",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "number",
+                    "displayName": "CA (€)",
+                    "fieldName": "chiffre_affaires",
+                    "order": 60000,
+                    "preserveWhitespace": false,
+                    "title": "CA (€)",
+                    "type": "float",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "right",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "number",
+                    "displayName": "Prix Moyen",
+                    "fieldName": "prix_moyen",
+                    "order": 70000,
+                    "preserveWhitespace": false,
+                    "title": "Prix Moyen",
+                    "type": "float",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "right",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "number",
+                    "displayName": "EV",
+                    "fieldName": "nb_ev",
+                    "order": 80000,
+                    "preserveWhitespace": false,
+                    "title": "EV",
+                    "type": "float",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  }
                 ]
               },
-              "frame": {"showTitle": true, "title": "Performance par Modèle"}
+              "frame": {
+                "showTitle": true,
+                "title": "Performance par Modèle"
+              },
+              "invisibleColumns": [],
+              "itemsPerPage": 25,
+              "paginationSize": "default",
+              "version": 1,
+              "widgetType": "table",
+              "withRowNumber": false
             }
           },
-          "position": {"x": 0, "y": 0, "width": 6, "height": 6}
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 6
+          }
         },
         {
           "widget": {
             "name": "w_brand_mix",
-            "queries": [{"name": "main_query", "query": {"datasetName": "ds_brand_mix", "fields": [{"name": "nb_annonces", "expression": "`nb_annonces`"}, {"name": "marque", "expression": "`marque`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_brand_mix",
+                  "fields": [
+                    {
+                      "name": "nb_annonces",
+                      "expression": "`nb_annonces`"
+                    },
+                    {
+                      "name": "marque",
+                      "expression": "`marque`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
             "spec": {
               "version": 3,
               "widgetType": "pie",
               "encodings": {
-                "angle": {"fieldName": "nb_annonces", "scale": {"type": "quantitative"}, "displayName": "Annonces"},
+                "angle": {
+                  "fieldName": "nb_annonces",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Annonces"
+                },
                 "color": {
                   "fieldName": "marque",
                   "scale": {
                     "type": "categorical",
                     "mappings": [
-                      {"value": "Renault", "color": "#FFAB00"},
-                      {"value": "Dacia", "color": "#1B8FD1"},
-                      {"value": "Alpine", "color": "#1B3A5C"}
+                      {
+                        "value": "Renault",
+                        "color": "#FFAB00"
+                      },
+                      {
+                        "value": "Dacia",
+                        "color": "#1B8FD1"
+                      },
+                      {
+                        "value": "Alpine",
+                        "color": "#1B3A5C"
+                      }
                     ]
                   },
                   "displayName": "Marque"
                 }
               },
-              "frame": {"showTitle": true, "title": "Répartition par Marque"}
+              "frame": {
+                "showTitle": true,
+                "title": "Répartition par Marque"
+              }
             }
           },
-          "position": {"x": 0, "y": 6, "width": 2, "height": 5}
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 2,
+            "height": 5
+          }
         },
         {
           "widget": {
             "name": "w_segment_revenue",
-            "queries": [{"name": "main_query", "query": {"datasetName": "ds_segment_revenue", "fields": [{"name": "segment", "expression": "`segment`"}, {"name": "chiffre_affaires", "expression": "`chiffre_affaires`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_segment_revenue",
+                  "fields": [
+                    {
+                      "name": "segment",
+                      "expression": "`segment`"
+                    },
+                    {
+                      "name": "chiffre_affaires",
+                      "expression": "`chiffre_affaires`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
             "spec": {
               "version": 3,
               "widgetType": "bar",
               "encodings": {
-                "x": {"fieldName": "segment", "scale": {"type": "categorical", "sort": {"by": "y-reversed"}}, "displayName": "Segment"},
-                "y": {"fieldName": "chiffre_affaires", "scale": {"type": "quantitative"}, "displayName": "CA (€)"},
-                "label": {"show": true}
+                "x": {
+                  "fieldName": "segment",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  },
+                  "displayName": "Segment"
+                },
+                "y": {
+                  "fieldName": "chiffre_affaires",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "CA (€)"
+                },
+                "label": {
+                  "show": true
+                }
               },
-              "frame": {"showTitle": true, "title": "Chiffre d'Affaires par Segment"},
-              "mark": {"colors": ["#1B3A5C"]}
+              "frame": {
+                "showTitle": true,
+                "title": "Chiffre d'Affaires par Segment"
+              },
+              "mark": {
+                "colors": [
+                  "#1B3A5C"
+                ]
+              }
             }
           },
-          "position": {"x": 2, "y": 6, "width": 4, "height": 5}
+          "position": {
+            "x": 2,
+            "y": 6,
+            "width": 4,
+            "height": 5
+          }
         },
         {
           "widget": {
             "name": "w_ev_trend",
-            "queries": [{"name": "main_query", "query": {"datasetName": "ds_ev_trend", "fields": [{"name": "mois", "expression": "`mois`"}, {"name": "energie", "expression": "`energie`"}, {"name": "nb", "expression": "`nb`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_ev_trend",
+                  "fields": [
+                    {
+                      "name": "mois",
+                      "expression": "`mois`"
+                    },
+                    {
+                      "name": "energie",
+                      "expression": "`energie`"
+                    },
+                    {
+                      "name": "nb",
+                      "expression": "`nb`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
             "spec": {
               "version": 3,
               "widgetType": "area",
               "encodings": {
-                "x": {"fieldName": "mois", "scale": {"type": "categorical"}, "displayName": "Mois"},
-                "y": {"fieldName": "nb", "scale": {"type": "quantitative"}, "displayName": "Nombre"},
+                "x": {
+                  "fieldName": "mois",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Mois"
+                },
+                "y": {
+                  "fieldName": "nb",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Nombre"
+                },
                 "color": {
                   "fieldName": "energie",
                   "scale": {
                     "type": "categorical",
                     "mappings": [
-                      {"value": "Électrique", "color": "#00A972"},
-                      {"value": "Hybride", "color": "#1B8FD1"},
-                      {"value": "Thermique", "color": "#919191"}
+                      {
+                        "value": "Électrique",
+                        "color": "#00A972"
+                      },
+                      {
+                        "value": "Hybride",
+                        "color": "#1B8FD1"
+                      },
+                      {
+                        "value": "Thermique",
+                        "color": "#919191"
+                      }
                     ]
                   },
                   "displayName": "Énergie"
                 }
               },
-              "frame": {"showTitle": true, "title": "Évolution EV vs Hybride vs Thermique"}
+              "frame": {
+                "showTitle": true,
+                "title": "Évolution EV vs Hybride vs Thermique"
+              }
             }
           },
-          "position": {"x": 0, "y": 11, "width": 6, "height": 5}
+          "position": {
+            "x": 0,
+            "y": 11,
+            "width": 6,
+            "height": 5
+          }
         }
       ]
     },
@@ -509,107 +1382,565 @@
         {
           "widget": {
             "name": "w_filter_region",
-            "queries": [{"name": "filter_query", "query": {"datasetName": "ds_listings_detail", "fields": [{"name": "region", "expression": "`region`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "filter_query",
+                "query": {
+                  "datasetName": "ds_listings_detail",
+                  "fields": [
+                    {
+                      "name": "region",
+                      "expression": "`region`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
             "spec": {
               "version": 2,
               "widgetType": "filter-multi-select",
               "encodings": {
-                "fields": [{"fieldName": "region", "displayName": "Région", "queryName": "filter_query"}]
+                "fields": [
+                  {
+                    "fieldName": "region",
+                    "displayName": "Région",
+                    "queryName": "filter_query"
+                  }
+                ]
               },
-              "frame": {"showTitle": true, "title": "Région"}
+              "frame": {
+                "showTitle": true,
+                "title": "Région"
+              }
             }
           },
-          "position": {"x": 0, "y": 0, "width": 1, "height": 2}
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 2
+          }
         },
         {
           "widget": {
             "name": "w_filter_brand",
-            "queries": [{"name": "filter_query", "query": {"datasetName": "ds_listings_detail", "fields": [{"name": "marque", "expression": "`marque`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "filter_query",
+                "query": {
+                  "datasetName": "ds_listings_detail",
+                  "fields": [
+                    {
+                      "name": "marque",
+                      "expression": "`marque`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
             "spec": {
               "version": 2,
               "widgetType": "filter-multi-select",
               "encodings": {
-                "fields": [{"fieldName": "marque", "displayName": "Marque", "queryName": "filter_query"}]
+                "fields": [
+                  {
+                    "fieldName": "marque",
+                    "displayName": "Marque",
+                    "queryName": "filter_query"
+                  }
+                ]
               },
-              "frame": {"showTitle": true, "title": "Marque"}
+              "frame": {
+                "showTitle": true,
+                "title": "Marque"
+              }
             }
           },
-          "position": {"x": 1, "y": 0, "width": 1, "height": 2}
+          "position": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 2
+          }
         },
         {
           "widget": {
             "name": "w_filter_etat",
-            "queries": [{"name": "filter_query", "query": {"datasetName": "ds_listings_detail", "fields": [{"name": "etat", "expression": "`etat`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "filter_query",
+                "query": {
+                  "datasetName": "ds_listings_detail",
+                  "fields": [
+                    {
+                      "name": "etat",
+                      "expression": "`etat`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
             "spec": {
               "version": 2,
               "widgetType": "filter-multi-select",
               "encodings": {
-                "fields": [{"fieldName": "etat", "displayName": "État", "queryName": "filter_query"}]
+                "fields": [
+                  {
+                    "fieldName": "etat",
+                    "displayName": "État",
+                    "queryName": "filter_query"
+                  }
+                ]
               },
-              "frame": {"showTitle": true, "title": "État"}
+              "frame": {
+                "showTitle": true,
+                "title": "État"
+              }
             }
           },
-          "position": {"x": 2, "y": 0, "width": 1, "height": 2}
+          "position": {
+            "x": 2,
+            "y": 0,
+            "width": 1,
+            "height": 2
+          }
         },
         {
           "widget": {
             "name": "w_filter_energy",
-            "queries": [{"name": "filter_query", "query": {"datasetName": "ds_listings_detail", "fields": [{"name": "energie", "expression": "`energie`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "filter_query",
+                "query": {
+                  "datasetName": "ds_listings_detail",
+                  "fields": [
+                    {
+                      "name": "energie",
+                      "expression": "`energie`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
             "spec": {
               "version": 2,
               "widgetType": "filter-multi-select",
               "encodings": {
-                "fields": [{"fieldName": "energie", "displayName": "Énergie", "queryName": "filter_query"}]
+                "fields": [
+                  {
+                    "fieldName": "energie",
+                    "displayName": "Énergie",
+                    "queryName": "filter_query"
+                  }
+                ]
               },
-              "frame": {"showTitle": true, "title": "Énergie"}
+              "frame": {
+                "showTitle": true,
+                "title": "Énergie"
+              }
             }
           },
-          "position": {"x": 3, "y": 0, "width": 1, "height": 2}
+          "position": {
+            "x": 3,
+            "y": 0,
+            "width": 1,
+            "height": 2
+          }
         },
         {
           "widget": {
             "name": "w_filter_date",
-            "queries": [{"name": "filter_query", "query": {"datasetName": "ds_listings_detail", "fields": [{"name": "date_vente", "expression": "`date_vente`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "filter_query",
+                "query": {
+                  "datasetName": "ds_listings_detail",
+                  "fields": [
+                    {
+                      "name": "date_vente",
+                      "expression": "`date_vente`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
             "spec": {
               "version": 2,
               "widgetType": "filter-date-range-picker",
               "encodings": {
-                "fields": [{"fieldName": "date_vente", "displayName": "Date de Vente", "queryName": "filter_query"}]
+                "fields": [
+                  {
+                    "fieldName": "date_vente",
+                    "displayName": "Date de Vente",
+                    "queryName": "filter_query"
+                  }
+                ]
               },
-              "frame": {"showTitle": true, "title": "Période"}
+              "frame": {
+                "showTitle": true,
+                "title": "Période"
+              }
             }
           },
-          "position": {"x": 4, "y": 0, "width": 2, "height": 2}
+          "position": {
+            "x": 4,
+            "y": 0,
+            "width": 2,
+            "height": 2
+          }
         },
         {
           "widget": {
             "name": "w_listings_table",
-            "queries": [{"name": "main_query", "query": {"datasetName": "ds_listings_detail", "fields": [{"name": "listing_id", "expression": "`listing_id`"}, {"name": "date_vente", "expression": "`date_vente`"}, {"name": "concession", "expression": "`concession`"}, {"name": "region", "expression": "`region`"}, {"name": "groupe", "expression": "`groupe`"}, {"name": "marque", "expression": "`marque`"}, {"name": "modele", "expression": "`modele`"}, {"name": "version", "expression": "`version`"}, {"name": "segment", "expression": "`segment`"}, {"name": "annee_immat", "expression": "`annee_immat`"}, {"name": "km", "expression": "`km`"}, {"name": "energie", "expression": "`energie`"}, {"name": "etat", "expression": "`etat`"}, {"name": "prix", "expression": "`prix`"}, {"name": "nb_photos", "expression": "`nb_photos`"}], "disaggregated": true}}],
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_listings_detail",
+                  "fields": [
+                    {
+                      "name": "date_vente",
+                      "expression": "`date_vente`"
+                    },
+                    {
+                      "name": "concession",
+                      "expression": "`concession`"
+                    },
+                    {
+                      "name": "region",
+                      "expression": "`region`"
+                    },
+                    {
+                      "name": "groupe",
+                      "expression": "`groupe`"
+                    },
+                    {
+                      "name": "marque",
+                      "expression": "`marque`"
+                    },
+                    {
+                      "name": "modele",
+                      "expression": "`modele`"
+                    },
+                    {
+                      "name": "version",
+                      "expression": "`version`"
+                    },
+                    {
+                      "name": "segment",
+                      "expression": "`segment`"
+                    },
+                    {
+                      "name": "annee_immat",
+                      "expression": "`annee_immat`"
+                    },
+                    {
+                      "name": "km",
+                      "expression": "`km`"
+                    },
+                    {
+                      "name": "energie",
+                      "expression": "`energie`"
+                    },
+                    {
+                      "name": "etat",
+                      "expression": "`etat`"
+                    },
+                    {
+                      "name": "prix",
+                      "expression": "`prix`"
+                    },
+                    {
+                      "name": "nb_photos",
+                      "expression": "`nb_photos`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
             "spec": {
-              "version": 2,
-              "widgetType": "table",
+              "allowHTMLByDefault": false,
+              "condensed": true,
               "encodings": {
                 "columns": [
-                  {"fieldName": "date_vente", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Date"},
-                  {"fieldName": "concession", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Concession"},
-                  {"fieldName": "region", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Région"},
-                  {"fieldName": "groupe", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Groupe"},
-                  {"fieldName": "marque", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Marque"},
-                  {"fieldName": "modele", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Modèle"},
-                  {"fieldName": "version", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Version"},
-                  {"fieldName": "segment", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Segment"},
-                  {"fieldName": "annee_immat", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Année"},
-                  {"fieldName": "km", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Km"},
-                  {"fieldName": "energie", "booleanValues": ["true", "false"], "displayAs": "string", "title": "Énergie"},
-                  {"fieldName": "etat", "booleanValues": ["true", "false"], "displayAs": "string", "title": "État"},
-                  {"fieldName": "prix", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Prix"},
-                  {"fieldName": "nb_photos", "booleanValues": ["true", "false"], "displayAs": "number", "title": "Photos"}
+                  {
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "string",
+                    "displayName": "Date",
+                    "fieldName": "date_vente",
+                    "order": 10000,
+                    "preserveWhitespace": false,
+                    "title": "Date",
+                    "type": "string",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "string",
+                    "displayName": "Concession",
+                    "fieldName": "concession",
+                    "order": 20000,
+                    "preserveWhitespace": false,
+                    "title": "Concession",
+                    "type": "string",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "string",
+                    "displayName": "Région",
+                    "fieldName": "region",
+                    "order": 30000,
+                    "preserveWhitespace": false,
+                    "title": "Région",
+                    "type": "string",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "string",
+                    "displayName": "Groupe",
+                    "fieldName": "groupe",
+                    "order": 40000,
+                    "preserveWhitespace": false,
+                    "title": "Groupe",
+                    "type": "string",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "string",
+                    "displayName": "Marque",
+                    "fieldName": "marque",
+                    "order": 50000,
+                    "preserveWhitespace": false,
+                    "title": "Marque",
+                    "type": "string",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "string",
+                    "displayName": "Modèle",
+                    "fieldName": "modele",
+                    "order": 60000,
+                    "preserveWhitespace": false,
+                    "title": "Modèle",
+                    "type": "string",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "string",
+                    "displayName": "Version",
+                    "fieldName": "version",
+                    "order": 70000,
+                    "preserveWhitespace": false,
+                    "title": "Version",
+                    "type": "string",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "string",
+                    "displayName": "Segment",
+                    "fieldName": "segment",
+                    "order": 80000,
+                    "preserveWhitespace": false,
+                    "title": "Segment",
+                    "type": "string",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "right",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "number",
+                    "displayName": "Année",
+                    "fieldName": "annee_immat",
+                    "order": 90000,
+                    "preserveWhitespace": false,
+                    "title": "Année",
+                    "type": "float",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "right",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "number",
+                    "displayName": "Km",
+                    "fieldName": "km",
+                    "order": 100000,
+                    "preserveWhitespace": false,
+                    "title": "Km",
+                    "type": "float",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "string",
+                    "displayName": "Énergie",
+                    "fieldName": "energie",
+                    "order": 110000,
+                    "preserveWhitespace": false,
+                    "title": "Énergie",
+                    "type": "string",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "left",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "string",
+                    "displayName": "État",
+                    "fieldName": "etat",
+                    "order": 120000,
+                    "preserveWhitespace": false,
+                    "title": "État",
+                    "type": "string",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "right",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "number",
+                    "displayName": "Prix",
+                    "fieldName": "prix",
+                    "order": 130000,
+                    "preserveWhitespace": false,
+                    "title": "Prix",
+                    "type": "float",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  },
+                  {
+                    "alignContent": "right",
+                    "allowHTML": false,
+                    "allowSearch": false,
+                    "booleanValues": [
+                      "false",
+                      "true"
+                    ],
+                    "displayAs": "number",
+                    "displayName": "Photos",
+                    "fieldName": "nb_photos",
+                    "order": 140000,
+                    "preserveWhitespace": false,
+                    "title": "Photos",
+                    "type": "float",
+                    "useMonospaceFont": false,
+                    "visible": true
+                  }
                 ]
               },
-              "frame": {"showTitle": true, "title": "Détail des Annonces"}
+              "frame": {
+                "showTitle": true,
+                "title": "Détail des Annonces"
+              },
+              "invisibleColumns": [],
+              "itemsPerPage": 25,
+              "paginationSize": "default",
+              "version": 1,
+              "widgetType": "table",
+              "withRowNumber": false
             }
           },
-          "position": {"x": 0, "y": 2, "width": 6, "height": 10}
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 6,
+            "height": 10
+          }
         }
       ]
     }
