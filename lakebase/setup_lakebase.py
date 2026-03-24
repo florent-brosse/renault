@@ -5,11 +5,12 @@
 # MAGIC The Lakebase project is created by the DAB (`databricks.yml`).
 # MAGIC
 # MAGIC This notebook:
-# MAGIC 1. Creates **synced tables** to replicate Gold Delta tables → Lakebase (for pgrest)
-# MAGIC 2. Creates reference tables directly in Lakebase (for CRUD via App)
+# MAGIC 1. Enables CDF on Gold tables
+# MAGIC 2. Creates **synced tables** to replicate Gold Delta → Lakebase Postgres (for pgrest)
+# MAGIC 3. Triggers initial sync
 # MAGIC
-# MAGIC **Prerequisite**: Lakebase project must be deployed (`databricks bundle deploy`)
-# MAGIC and registered as a UC catalog via: Catalog Explorer → + → Create catalog → Lakebase Postgres
+# MAGIC Synced tables are created in the **source catalog/schema** and auto-appear in
+# MAGIC the Lakebase Postgres database. No UC catalog registration needed.
 
 # COMMAND ----------
 
@@ -25,28 +26,8 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
-try:
-    dbutils.widgets.text("lakebase_catalog", "renault_lakebase", "Lakebase catalog name")
-    LAKEBASE_CATALOG = dbutils.widgets.get("lakebase_catalog")
-except Exception:
-    LAKEBASE_CATALOG = "renault_lakebase"
-
-print(f"Lakebase catalog: {LAKEBASE_CATALOG}")
-print(f"Delta catalog: {CATALOG}")
-
-# Check if Lakebase catalog exists
-try:
-    spark.sql(f"DESCRIBE CATALOG {LAKEBASE_CATALOG}")
-    print(f"Lakebase catalog '{LAKEBASE_CATALOG}' found — proceeding with setup")
-except Exception:
-    print(f"Lakebase catalog '{LAKEBASE_CATALOG}' not found. Skipping.")
-    print(f"  Register it via: Catalog Explorer → + → Create catalog → Lakebase Postgres")
-    dbutils.notebook.exit("SKIPPED: Lakebase catalog not found")
-
-# COMMAND ----------
-
 # MAGIC %md
-# MAGIC ## 1. Enable CDF on Gold tables (required for synced tables)
+# MAGIC ## 1. Enable CDF on Gold tables (required for Triggered/Continuous sync)
 
 # COMMAND ----------
 
@@ -70,8 +51,8 @@ for table in gold_tables:
 # MAGIC %md
 # MAGIC ## 2. Create synced tables (Delta → Lakebase)
 # MAGIC
-# MAGIC Synced tables automatically replicate Gold data into Lakebase Postgres.
-# MAGIC Uses TRIGGERED mode — sync on demand or at intervals.
+# MAGIC Synced tables are created in the same catalog/schema as the source.
+# MAGIC They auto-appear in the Lakebase Postgres database as `"car_sales"."table_name_synced"`.
 
 # COMMAND ----------
 
@@ -79,6 +60,8 @@ from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.database import SyncedDatabaseTable, SyncedTableSpec
 
 w = WorkspaceClient()
+
+LAKEBASE_PROJECT = "renault-lakebase"
 
 # Primary keys for each Gold table
 SYNC_CONFIG = [
@@ -90,7 +73,8 @@ SYNC_CONFIG = [
 
 for cfg in SYNC_CONFIG:
     source = f"{CATALOG}.car_sales.{cfg['table']}"
-    dest = f"{LAKEBASE_CATALOG}.public.{cfg['table']}"
+    # Synced table lives in the same catalog/schema as source
+    dest = f"{CATALOG}.car_sales.{cfg['table']}_synced"
     try:
         synced = w.database.create_synced_database_table(
             SyncedDatabaseTable(
@@ -102,10 +86,12 @@ for cfg in SYNC_CONFIG:
                 )
             )
         )
-        print(f"Synced table created: {source} → {dest}")
+        print(f"Synced table created: {source} → Lakebase")
+        print(f"  UC table: {dest}")
+        print(f"  Postgres: \"car_sales\".\"{cfg['table']}_synced\"")
     except Exception as e:
         if "already exists" in str(e).lower():
-            print(f"Synced table already exists: {dest}")
+            print(f"Already exists: {dest}")
         else:
             print(f"Sync {cfg['table']} failed: {e}")
 
@@ -117,79 +103,33 @@ for cfg in SYNC_CONFIG:
 # COMMAND ----------
 
 for cfg in SYNC_CONFIG:
-    dest = f"{LAKEBASE_CATALOG}.public.{cfg['table']}"
+    dest = f"{CATALOG}.car_sales.{cfg['table']}_synced"
     try:
         table_info = w.database.get_synced_database_table(name=dest)
         pipeline_id = table_info.data_synchronization_status.pipeline_id
         w.pipelines.start_update(pipeline_id=pipeline_id)
-        print(f"Sync triggered for {dest} (pipeline: {pipeline_id})")
+        print(f"Sync triggered: {dest} (pipeline: {pipeline_id})")
     except Exception as e:
-        print(f"Trigger sync {cfg['table']}: {e}")
+        print(f"Trigger {cfg['table']}: {e}")
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 4. Create reference tables in Lakebase (CRUD for App)
-
-# COMMAND ----------
-
-# Reference tables created directly in Lakebase via SQL through the catalog
-try:
-    spark.sql(f"""
-    CREATE TABLE IF NOT EXISTS {LAKEBASE_CATALOG}.public.ref_concession_groups (
-      group_id VARCHAR(10),
-      group_name VARCHAR(100),
-      regions STRING,
-      contact_email VARCHAR(200),
-      is_active BOOLEAN
-    )
-    """)
-
-    spark.sql(f"""
-    CREATE TABLE IF NOT EXISTS {LAKEBASE_CATALOG}.public.ref_price_adjustments (
-      model_id VARCHAR(10),
-      segment VARCHAR(20),
-      adjustment_pct DECIMAL(5,2),
-      reason VARCHAR(200),
-      valid_from DATE,
-      valid_to DATE,
-      created_by VARCHAR(200)
-    )
-    """)
-    print("Reference tables created in Lakebase")
-except Exception as e:
-    print(f"Ref tables: {e}")
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## 5. Seed reference tables
-
-# COMMAND ----------
-
-try:
-    seed_data = [(g["group_id"], g["group_name"], ", ".join(g["regions"]), None, True) for g in CONCESSION_GROUPS]
-    df = spark.createDataFrame(seed_data, ["group_id", "group_name", "regions", "contact_email", "is_active"])
-    df.write.mode("overwrite").saveAsTable(f"{LAKEBASE_CATALOG}.public.ref_concession_groups")
-    print(f"Seeded {len(CONCESSION_GROUPS)} concession groups")
-except Exception as e:
-    print(f"Seed: {e}")
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## 6. Summary
+# MAGIC ## 4. Summary
+# MAGIC
+# MAGIC Once synced, query data in Postgres via pgrest:
+# MAGIC ```sql
+# MAGIC SELECT * FROM "car_sales"."listings_detail_synced" WHERE group_id = 'GRP-01';
+# MAGIC ```
 
 # COMMAND ----------
 
 print("=" * 60)
-print("  LAKEBASE SETUP COMPLETE")
+print("  LAKEBASE SYNCED TABLES SETUP COMPLETE")
 print("=" * 60)
-print(f"\n  Lakebase catalog: {LAKEBASE_CATALOG}")
-print(f"\n  Synced tables (Delta → Lakebase, auto-replicated):")
+print(f"\n  Lakebase project: {LAKEBASE_PROJECT}")
+print(f"\n  Synced tables (Delta → Lakebase Postgres):")
 for cfg in SYNC_CONFIG:
-    print(f"    {CATALOG}.car_sales.{cfg['table']} → {LAKEBASE_CATALOG}.public.{cfg['table']}")
-print(f"\n  Reference tables (CRUD via App):")
-print(f"    {LAKEBASE_CATALOG}.public.ref_concession_groups")
-print(f"    {LAKEBASE_CATALOG}.public.ref_price_adjustments")
-print(f"\n  Sync mode: TRIGGERED (run on demand or at intervals)")
+    print(f"    {CATALOG}.car_sales.{cfg['table']} → \"car_sales\".\"{cfg['table']}_synced\"")
+print(f"\n  Sync mode: TRIGGERED")
+print(f"\n  Postgres access: connect to Lakebase endpoint, query \"car_sales\".\"*_synced\" tables")
