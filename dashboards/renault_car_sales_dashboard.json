@@ -1,0 +1,606 @@
+{
+  "datasets": [
+    {
+      "name": "ds_overview_kpis",
+      "displayName": "Vue d'ensemble - KPIs",
+      "queryLines": [
+        "SELECT ",
+        "  SUM(nb_listings) AS total_annonces, ",
+        "  SUM(total_revenue) AS chiffre_affaires, ",
+        "  ROUND(SUM(total_revenue) / NULLIF(SUM(nb_listings), 0), 0) AS prix_moyen, ",
+        "  ROUND(SUM(nb_electrique) * 100.0 / NULLIF(SUM(nb_listings), 0), 1) AS part_ev_pct, ",
+        "  SUM(nb_neuf) AS total_neuf, ",
+        "  SUM(nb_occasion) AS total_occasion ",
+        "FROM renault_demo.car_sales.concession_daily_kpis"
+      ]
+    },
+    {
+      "name": "ds_revenue_trend",
+      "displayName": "Tendance CA mensuel",
+      "queryLines": [
+        "SELECT ",
+        "  DATE_TRUNC('MONTH', sale_date) AS mois, ",
+        "  SUM(total_revenue) AS chiffre_affaires, ",
+        "  SUM(nb_listings) AS nb_annonces ",
+        "FROM renault_demo.car_sales.concession_daily_kpis ",
+        "GROUP BY DATE_TRUNC('MONTH', sale_date) ",
+        "ORDER BY mois"
+      ]
+    },
+    {
+      "name": "ds_listings_region",
+      "displayName": "Annonces par région",
+      "queryLines": [
+        "SELECT ",
+        "  region, ",
+        "  SUM(nb_listings) AS nb_annonces, ",
+        "  SUM(total_revenue) AS chiffre_affaires ",
+        "FROM renault_demo.car_sales.concession_daily_kpis ",
+        "GROUP BY region ",
+        "ORDER BY nb_annonces DESC"
+      ]
+    },
+    {
+      "name": "ds_energy_mix",
+      "displayName": "Mix énergie",
+      "queryLines": [
+        "SELECT ",
+        "  'Électrique' AS energie, SUM(nb_electrique) AS nb FROM renault_demo.car_sales.concession_daily_kpis ",
+        "UNION ALL ",
+        "SELECT 'Hybride', SUM(nb_hybride) FROM renault_demo.car_sales.concession_daily_kpis ",
+        "UNION ALL ",
+        "SELECT 'Thermique', SUM(nb_thermique) FROM renault_demo.car_sales.concession_daily_kpis"
+      ]
+    },
+    {
+      "name": "ds_group_scorecard",
+      "displayName": "Scorecard Groupes",
+      "queryLines": [
+        "SELECT ",
+        "  group_name, ",
+        "  SUM(nb_listings) AS nb_annonces, ",
+        "  SUM(total_revenue) AS chiffre_affaires, ",
+        "  ROUND(SUM(total_revenue) / NULLIF(SUM(nb_listings), 0), 0) AS prix_moyen, ",
+        "  ROUND(SUM(nb_ev) * 100.0 / NULLIF(SUM(nb_listings), 0), 1) AS part_ev_pct, ",
+        "  ROUND(SUM(nb_listings * neuf_share_pct) / NULLIF(SUM(nb_listings), 0), 1) AS part_neuf_pct, ",
+        "  MAX(nb_concessions) AS nb_concessions ",
+        "FROM renault_demo.car_sales.group_scorecard ",
+        "GROUP BY group_name ",
+        "ORDER BY chiffre_affaires DESC"
+      ]
+    },
+    {
+      "name": "ds_concession_daily",
+      "displayName": "Tendance concessions",
+      "queryLines": [
+        "SELECT ",
+        "  DATE_TRUNC('WEEK', sale_date) AS semaine, ",
+        "  group_name, ",
+        "  SUM(total_revenue) AS chiffre_affaires ",
+        "FROM renault_demo.car_sales.concession_daily_kpis ",
+        "GROUP BY DATE_TRUNC('WEEK', sale_date), group_name ",
+        "ORDER BY semaine"
+      ]
+    },
+    {
+      "name": "ds_top_concessions",
+      "displayName": "Top 10 Concessions",
+      "queryLines": [
+        "SELECT ",
+        "  concession_name, ",
+        "  region, ",
+        "  group_name, ",
+        "  SUM(total_revenue) AS chiffre_affaires ",
+        "FROM renault_demo.car_sales.concession_daily_kpis ",
+        "GROUP BY concession_name, region, group_name ",
+        "ORDER BY chiffre_affaires DESC ",
+        "LIMIT 10"
+      ]
+    },
+    {
+      "name": "ds_model_perf",
+      "displayName": "Performance Modèles",
+      "queryLines": [
+        "SELECT ",
+        "  brand AS marque, ",
+        "  model AS modele, ",
+        "  version, ",
+        "  segment, ",
+        "  SUM(nb_listings) AS nb_annonces, ",
+        "  SUM(total_revenue) AS chiffre_affaires, ",
+        "  ROUND(SUM(total_revenue) / NULLIF(SUM(nb_listings), 0), 0) AS prix_moyen, ",
+        "  SUM(nb_electrique) AS nb_ev, ",
+        "  SUM(nb_hybride) AS nb_hybride ",
+        "FROM renault_demo.car_sales.model_performance ",
+        "GROUP BY brand, model, version, segment ",
+        "ORDER BY chiffre_affaires DESC"
+      ]
+    },
+    {
+      "name": "ds_brand_mix",
+      "displayName": "Mix Marques",
+      "queryLines": [
+        "SELECT ",
+        "  brand AS marque, ",
+        "  SUM(nb_listings) AS nb_annonces ",
+        "FROM renault_demo.car_sales.model_performance ",
+        "GROUP BY brand ",
+        "ORDER BY nb_annonces DESC"
+      ]
+    },
+    {
+      "name": "ds_segment_revenue",
+      "displayName": "CA par Segment",
+      "queryLines": [
+        "SELECT ",
+        "  segment, ",
+        "  SUM(total_revenue) AS chiffre_affaires ",
+        "FROM renault_demo.car_sales.model_performance ",
+        "GROUP BY segment ",
+        "ORDER BY chiffre_affaires DESC"
+      ]
+    },
+    {
+      "name": "ds_ev_trend",
+      "displayName": "Tendance EV vs Thermique",
+      "queryLines": [
+        "SELECT ",
+        "  CONCAT(year, '-', LPAD(month, 2, '0')) AS mois, ",
+        "  SUM(nb_electrique) AS electrique, ",
+        "  SUM(nb_hybride) AS hybride, ",
+        "  SUM(nb_listings) - SUM(nb_electrique) - SUM(nb_hybride) AS thermique ",
+        "FROM renault_demo.car_sales.model_performance ",
+        "GROUP BY year, month ",
+        "ORDER BY mois"
+      ]
+    },
+    {
+      "name": "ds_listings_detail",
+      "displayName": "Détail Annonces",
+      "queryLines": [
+        "SELECT ",
+        "  listing_id, ",
+        "  sale_date AS date_vente, ",
+        "  concession_name AS concession, ",
+        "  region, ",
+        "  group_name AS groupe, ",
+        "  brand AS marque, ",
+        "  model AS modele, ",
+        "  version, ",
+        "  segment, ",
+        "  year_immat AS annee_immat, ",
+        "  age, ",
+        "  km, ",
+        "  energy AS energie, ",
+        "  etat, ",
+        "  price AS prix, ",
+        "  nb_photos ",
+        "FROM renault_demo.car_sales.listings_detail ",
+        "ORDER BY sale_date DESC ",
+        "LIMIT 5000"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "page_overview",
+      "displayName": "Vue d'ensemble",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "w_kpi_annonces",
+            "queries": [{"name": "main_query", "query": {"datasetName": "ds_overview_kpis", "fields": [{"name": "total_annonces", "expression": "`total_annonces`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {"fieldName": "total_annonces", "displayName": "Total Annonces"}
+              },
+              "frame": {"showTitle": true, "title": "Total Annonces"}
+            }
+          },
+          "position": {"x": 0, "y": 0, "width": 1, "height": 2}
+        },
+        {
+          "widget": {
+            "name": "w_kpi_ca",
+            "queries": [{"name": "main_query", "query": {"datasetName": "ds_overview_kpis", "fields": [{"name": "chiffre_affaires", "expression": "`chiffre_affaires`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {"fieldName": "chiffre_affaires", "displayName": "Chiffre d'Affaires (€)"}
+              },
+              "frame": {"showTitle": true, "title": "Chiffre d'Affaires (€)"}
+            }
+          },
+          "position": {"x": 1, "y": 0, "width": 2, "height": 2}
+        },
+        {
+          "widget": {
+            "name": "w_kpi_prix",
+            "queries": [{"name": "main_query", "query": {"datasetName": "ds_overview_kpis", "fields": [{"name": "prix_moyen", "expression": "`prix_moyen`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {"fieldName": "prix_moyen", "displayName": "Prix Moyen (€)"}
+              },
+              "frame": {"showTitle": true, "title": "Prix Moyen (€)"}
+            }
+          },
+          "position": {"x": 3, "y": 0, "width": 1, "height": 2}
+        },
+        {
+          "widget": {
+            "name": "w_kpi_ev",
+            "queries": [{"name": "main_query", "query": {"datasetName": "ds_overview_kpis", "fields": [{"name": "part_ev_pct", "expression": "`part_ev_pct`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {"fieldName": "part_ev_pct", "displayName": "Part Électrique (%)"}
+              },
+              "frame": {"showTitle": true, "title": "Part Électrique (%)"}
+            }
+          },
+          "position": {"x": 4, "y": 0, "width": 1, "height": 2}
+        },
+        {
+          "widget": {
+            "name": "w_kpi_neuf_occ",
+            "queries": [{"name": "main_query", "query": {"datasetName": "ds_overview_kpis", "fields": [{"name": "total_neuf", "expression": "`total_neuf`"}, {"name": "total_occasion", "expression": "`total_occasion`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {"fieldName": "total_neuf", "displayName": "Véhicules Neufs"}
+              },
+              "frame": {"showTitle": true, "title": "Neufs / Occasions"}
+            }
+          },
+          "position": {"x": 5, "y": 0, "width": 1, "height": 2}
+        },
+        {
+          "widget": {
+            "name": "w_revenue_trend",
+            "queries": [{"name": "main_query", "query": {"datasetName": "ds_revenue_trend", "fields": [{"name": "mois", "expression": "`mois`"}, {"name": "chiffre_affaires", "expression": "`chiffre_affaires`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 3,
+              "widgetType": "area",
+              "encodings": {
+                "x": {"fieldName": "mois", "scale": {"type": "temporal"}, "displayName": "Mois"},
+                "y": {"fieldName": "chiffre_affaires", "scale": {"type": "quantitative"}, "displayName": "Chiffre d'Affaires (€)"}
+              },
+              "frame": {"showTitle": true, "title": "Évolution du Chiffre d'Affaires par Mois"},
+              "mark": {"colors": ["#1B3A5C"]}
+            }
+          },
+          "position": {"x": 0, "y": 2, "width": 4, "height": 5}
+        },
+        {
+          "widget": {
+            "name": "w_energy_mix",
+            "queries": [{"name": "main_query", "query": {"datasetName": "ds_energy_mix", "fields": [{"name": "nb", "expression": "`nb`"}, {"name": "energie", "expression": "`energie`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {"fieldName": "nb", "scale": {"type": "quantitative"}, "displayName": "Nombre"},
+                "color": {
+                  "fieldName": "energie",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {"value": "Électrique", "color": "#00A972"},
+                      {"value": "Hybride", "color": "#1B8FD1"},
+                      {"value": "Thermique", "color": "#919191"}
+                    ]
+                  },
+                  "displayName": "Énergie"
+                }
+              },
+              "frame": {"showTitle": true, "title": "Mix Énergie"}
+            }
+          },
+          "position": {"x": 4, "y": 2, "width": 2, "height": 5}
+        },
+        {
+          "widget": {
+            "name": "w_listings_region",
+            "queries": [{"name": "main_query", "query": {"datasetName": "ds_listings_region", "fields": [{"name": "region", "expression": "`region`"}, {"name": "nb_annonces", "expression": "`nb_annonces`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {"fieldName": "region", "scale": {"type": "categorical", "sort": {"by": "y-reversed"}}, "displayName": "Région"},
+                "y": {"fieldName": "nb_annonces", "scale": {"type": "quantitative"}, "displayName": "Nombre d'Annonces"},
+                "label": {"show": true}
+              },
+              "frame": {"showTitle": true, "title": "Annonces par Région"},
+              "mark": {"colors": ["#1B3A5C"]}
+            }
+          },
+          "position": {"x": 0, "y": 7, "width": 6, "height": 5}
+        }
+      ]
+    },
+    {
+      "name": "page_concessions",
+      "displayName": "Performance Concessions",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "w_group_table",
+            "queries": [{"name": "main_query", "query": {"datasetName": "ds_group_scorecard", "fields": [{"name": "group_name", "expression": "`group_name`"}, {"name": "nb_annonces", "expression": "`nb_annonces`"}, {"name": "chiffre_affaires", "expression": "`chiffre_affaires`"}, {"name": "prix_moyen", "expression": "`prix_moyen`"}, {"name": "part_ev_pct", "expression": "`part_ev_pct`"}, {"name": "part_neuf_pct", "expression": "`part_neuf_pct`"}, {"name": "nb_concessions", "expression": "`nb_concessions`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {"fieldName": "group_name", "type": "string", "displayAs": "string", "title": "Groupe", "displayName": "Groupe"},
+                  {"fieldName": "nb_concessions", "type": "integer", "displayAs": "number", "title": "Concessions", "alignContent": "right"},
+                  {"fieldName": "nb_annonces", "type": "integer", "displayAs": "number", "title": "Annonces", "alignContent": "right"},
+                  {"fieldName": "chiffre_affaires", "type": "float", "displayAs": "number", "numberFormat": "#,##0 €", "title": "CA (€)", "alignContent": "right"},
+                  {"fieldName": "prix_moyen", "type": "float", "displayAs": "number", "numberFormat": "#,##0 €", "title": "Prix Moyen", "alignContent": "right"},
+                  {"fieldName": "part_ev_pct", "type": "float", "displayAs": "number", "numberFormat": "0.0%", "title": "Part EV (%)", "alignContent": "right"},
+                  {"fieldName": "part_neuf_pct", "type": "float", "displayAs": "number", "numberFormat": "0.0%", "title": "Part Neuf (%)", "alignContent": "right"}
+                ]
+              },
+              "frame": {"showTitle": true, "title": "Scorecard par Groupe de Concessions"}
+            }
+          },
+          "position": {"x": 0, "y": 0, "width": 6, "height": 5}
+        },
+        {
+          "widget": {
+            "name": "w_concession_trend",
+            "queries": [{"name": "main_query", "query": {"datasetName": "ds_concession_daily", "fields": [{"name": "semaine", "expression": "`semaine`"}, {"name": "group_name", "expression": "`group_name`"}, {"name": "chiffre_affaires", "expression": "`chiffre_affaires`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {"fieldName": "semaine", "scale": {"type": "temporal"}, "displayName": "Semaine"},
+                "y": {"fieldName": "chiffre_affaires", "scale": {"type": "quantitative"}, "displayName": "CA (€)"},
+                "color": {"fieldName": "group_name", "scale": {"type": "categorical"}, "displayName": "Groupe"}
+              },
+              "frame": {"showTitle": true, "title": "Tendance CA Hebdomadaire par Groupe"}
+            }
+          },
+          "position": {"x": 0, "y": 5, "width": 6, "height": 5}
+        },
+        {
+          "widget": {
+            "name": "w_top_concessions",
+            "queries": [{"name": "main_query", "query": {"datasetName": "ds_top_concessions", "fields": [{"name": "concession_name", "expression": "`concession_name`"}, {"name": "chiffre_affaires", "expression": "`chiffre_affaires`"}, {"name": "group_name", "expression": "`group_name`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {"fieldName": "concession_name", "scale": {"type": "categorical", "sort": {"by": "y-reversed"}}, "displayName": "Concession"},
+                "y": {"fieldName": "chiffre_affaires", "scale": {"type": "quantitative"}, "displayName": "CA (€)"},
+                "color": {"fieldName": "group_name", "scale": {"type": "categorical"}, "displayName": "Groupe"},
+                "label": {"show": true}
+              },
+              "frame": {"showTitle": true, "title": "Top 10 Concessions par CA"},
+              "mark": {"colors": ["#1B3A5C", "#1B8FD1", "#00A972", "#FFAB00", "#FF3621", "#8BCAE7", "#AB4057", "#99DDB4"]}
+            }
+          },
+          "position": {"x": 0, "y": 10, "width": 6, "height": 5}
+        }
+      ]
+    },
+    {
+      "name": "page_models",
+      "displayName": "Modèles",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "w_model_table",
+            "queries": [{"name": "main_query", "query": {"datasetName": "ds_model_perf", "fields": [{"name": "marque", "expression": "`marque`"}, {"name": "modele", "expression": "`modele`"}, {"name": "version", "expression": "`version`"}, {"name": "segment", "expression": "`segment`"}, {"name": "nb_annonces", "expression": "`nb_annonces`"}, {"name": "chiffre_affaires", "expression": "`chiffre_affaires`"}, {"name": "prix_moyen", "expression": "`prix_moyen`"}, {"name": "nb_ev", "expression": "`nb_ev`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {"fieldName": "marque", "type": "string", "displayAs": "string", "title": "Marque", "displayName": "Marque"},
+                  {"fieldName": "modele", "type": "string", "displayAs": "string", "title": "Modèle"},
+                  {"fieldName": "version", "type": "string", "displayAs": "string", "title": "Version"},
+                  {"fieldName": "segment", "type": "string", "displayAs": "string", "title": "Segment"},
+                  {"fieldName": "nb_annonces", "type": "integer", "displayAs": "number", "title": "Annonces", "alignContent": "right"},
+                  {"fieldName": "chiffre_affaires", "type": "float", "displayAs": "number", "numberFormat": "#,##0 €", "title": "CA (€)", "alignContent": "right"},
+                  {"fieldName": "prix_moyen", "type": "float", "displayAs": "number", "numberFormat": "#,##0 €", "title": "Prix Moyen", "alignContent": "right"},
+                  {"fieldName": "nb_ev", "type": "integer", "displayAs": "number", "title": "EV", "alignContent": "right"}
+                ]
+              },
+              "frame": {"showTitle": true, "title": "Performance par Modèle"}
+            }
+          },
+          "position": {"x": 0, "y": 0, "width": 6, "height": 6}
+        },
+        {
+          "widget": {
+            "name": "w_brand_mix",
+            "queries": [{"name": "main_query", "query": {"datasetName": "ds_brand_mix", "fields": [{"name": "nb_annonces", "expression": "`nb_annonces`"}, {"name": "marque", "expression": "`marque`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {"fieldName": "nb_annonces", "scale": {"type": "quantitative"}, "displayName": "Annonces"},
+                "color": {
+                  "fieldName": "marque",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {"value": "Renault", "color": "#FFAB00"},
+                      {"value": "Dacia", "color": "#1B8FD1"},
+                      {"value": "Alpine", "color": "#1B3A5C"}
+                    ]
+                  },
+                  "displayName": "Marque"
+                }
+              },
+              "frame": {"showTitle": true, "title": "Répartition par Marque"}
+            }
+          },
+          "position": {"x": 0, "y": 6, "width": 2, "height": 5}
+        },
+        {
+          "widget": {
+            "name": "w_segment_revenue",
+            "queries": [{"name": "main_query", "query": {"datasetName": "ds_segment_revenue", "fields": [{"name": "segment", "expression": "`segment`"}, {"name": "chiffre_affaires", "expression": "`chiffre_affaires`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {"fieldName": "segment", "scale": {"type": "categorical", "sort": {"by": "y-reversed"}}, "displayName": "Segment"},
+                "y": {"fieldName": "chiffre_affaires", "scale": {"type": "quantitative"}, "displayName": "CA (€)"},
+                "label": {"show": true}
+              },
+              "frame": {"showTitle": true, "title": "Chiffre d'Affaires par Segment"},
+              "mark": {"colors": ["#1B3A5C"]}
+            }
+          },
+          "position": {"x": 2, "y": 6, "width": 4, "height": 5}
+        },
+        {
+          "widget": {
+            "name": "w_ev_trend",
+            "queries": [{"name": "main_query", "query": {"datasetName": "ds_ev_trend", "fields": [{"name": "mois", "expression": "`mois`"}, {"name": "electrique", "expression": "`electrique`"}, {"name": "hybride", "expression": "`hybride`"}, {"name": "thermique", "expression": "`thermique`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 3,
+              "widgetType": "area",
+              "encodings": {
+                "x": {"fieldName": "mois", "scale": {"type": "categorical"}, "displayName": "Mois"},
+                "y": {"fieldName": "electrique", "scale": {"type": "quantitative"}, "displayName": "Électrique"}
+              },
+              "frame": {"showTitle": true, "title": "Évolution EV vs Hybride vs Thermique"}
+            }
+          },
+          "position": {"x": 0, "y": 11, "width": 6, "height": 5}
+        }
+      ]
+    },
+    {
+      "name": "page_detail",
+      "displayName": "Détail Annonces",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "w_filter_region",
+            "queries": [{"name": "filter_query", "query": {"datasetName": "ds_listings_detail", "fields": [{"name": "region", "expression": "`region`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [{"fieldName": "region", "displayName": "Région", "queryName": "filter_query"}]
+              },
+              "frame": {"showTitle": true, "title": "Région"}
+            }
+          },
+          "position": {"x": 0, "y": 0, "width": 1, "height": 2}
+        },
+        {
+          "widget": {
+            "name": "w_filter_brand",
+            "queries": [{"name": "filter_query", "query": {"datasetName": "ds_listings_detail", "fields": [{"name": "marque", "expression": "`marque`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [{"fieldName": "marque", "displayName": "Marque", "queryName": "filter_query"}]
+              },
+              "frame": {"showTitle": true, "title": "Marque"}
+            }
+          },
+          "position": {"x": 1, "y": 0, "width": 1, "height": 2}
+        },
+        {
+          "widget": {
+            "name": "w_filter_etat",
+            "queries": [{"name": "filter_query", "query": {"datasetName": "ds_listings_detail", "fields": [{"name": "etat", "expression": "`etat`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [{"fieldName": "etat", "displayName": "État", "queryName": "filter_query"}]
+              },
+              "frame": {"showTitle": true, "title": "État"}
+            }
+          },
+          "position": {"x": 2, "y": 0, "width": 1, "height": 2}
+        },
+        {
+          "widget": {
+            "name": "w_filter_energy",
+            "queries": [{"name": "filter_query", "query": {"datasetName": "ds_listings_detail", "fields": [{"name": "energie", "expression": "`energie`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [{"fieldName": "energie", "displayName": "Énergie", "queryName": "filter_query"}]
+              },
+              "frame": {"showTitle": true, "title": "Énergie"}
+            }
+          },
+          "position": {"x": 3, "y": 0, "width": 1, "height": 2}
+        },
+        {
+          "widget": {
+            "name": "w_filter_date",
+            "queries": [{"name": "filter_query", "query": {"datasetName": "ds_listings_detail", "fields": [{"name": "date_vente", "expression": "`date_vente`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-date-range-picker",
+              "encodings": {
+                "fields": [{"fieldName": "date_vente", "displayName": "Date de Vente", "queryName": "filter_query"}]
+              },
+              "frame": {"showTitle": true, "title": "Période"}
+            }
+          },
+          "position": {"x": 4, "y": 0, "width": 2, "height": 2}
+        },
+        {
+          "widget": {
+            "name": "w_listings_table",
+            "queries": [{"name": "main_query", "query": {"datasetName": "ds_listings_detail", "fields": [{"name": "listing_id", "expression": "`listing_id`"}, {"name": "date_vente", "expression": "`date_vente`"}, {"name": "concession", "expression": "`concession`"}, {"name": "region", "expression": "`region`"}, {"name": "groupe", "expression": "`groupe`"}, {"name": "marque", "expression": "`marque`"}, {"name": "modele", "expression": "`modele`"}, {"name": "version", "expression": "`version`"}, {"name": "segment", "expression": "`segment`"}, {"name": "annee_immat", "expression": "`annee_immat`"}, {"name": "km", "expression": "`km`"}, {"name": "energie", "expression": "`energie`"}, {"name": "etat", "expression": "`etat`"}, {"name": "prix", "expression": "`prix`"}, {"name": "nb_photos", "expression": "`nb_photos`"}], "disaggregated": true}}],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {"fieldName": "date_vente", "type": "date", "displayAs": "string", "title": "Date", "displayName": "Date"},
+                  {"fieldName": "concession", "type": "string", "displayAs": "string", "title": "Concession"},
+                  {"fieldName": "region", "type": "string", "displayAs": "string", "title": "Région"},
+                  {"fieldName": "groupe", "type": "string", "displayAs": "string", "title": "Groupe"},
+                  {"fieldName": "marque", "type": "string", "displayAs": "string", "title": "Marque"},
+                  {"fieldName": "modele", "type": "string", "displayAs": "string", "title": "Modèle"},
+                  {"fieldName": "version", "type": "string", "displayAs": "string", "title": "Version"},
+                  {"fieldName": "segment", "type": "string", "displayAs": "string", "title": "Segment"},
+                  {"fieldName": "annee_immat", "type": "integer", "displayAs": "number", "title": "Année", "alignContent": "right"},
+                  {"fieldName": "km", "type": "integer", "displayAs": "number", "numberFormat": "#,##0", "title": "Km", "alignContent": "right"},
+                  {"fieldName": "energie", "type": "string", "displayAs": "string", "title": "Énergie"},
+                  {"fieldName": "etat", "type": "string", "displayAs": "string", "title": "État"},
+                  {"fieldName": "prix", "type": "integer", "displayAs": "number", "numberFormat": "#,##0 €", "title": "Prix", "alignContent": "right"},
+                  {"fieldName": "nb_photos", "type": "integer", "displayAs": "number", "title": "Photos", "alignContent": "right"}
+                ]
+              },
+              "frame": {"showTitle": true, "title": "Détail des Annonces"}
+            }
+          },
+          "position": {"x": 0, "y": 2, "width": 6, "height": 10}
+        }
+      ]
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}

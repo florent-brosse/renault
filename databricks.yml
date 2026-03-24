@@ -1,0 +1,103 @@
+bundle:
+  name: renault-car-sales-demo
+
+variables:
+  catalog:
+    description: "Unity Catalog name for all Renault demo tables"
+    default: renault_demo
+
+workspace:
+  root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+
+targets:
+  dev:
+    default: true
+    mode: development
+    variables:
+      catalog: renault_demo
+
+resources:
+  # ─── Declarative Pipeline: Bronze → Silver → Gold ───
+  pipelines:
+    car_sales_pipeline:
+      name: "Renault Car Sales Pipeline"
+      catalog: ${var.catalog}
+      target: car_sales
+      channel: CURRENT
+      continuous: false
+      development: true
+      serverless: true
+      libraries:
+        - notebook:
+            path: ./pipeline/car_sales_pipeline.py
+      configuration:
+        renault_catalog: ${var.catalog}
+
+  # ─── Job: Initial Setup (history + pipeline + RLS + Lakebase) ───
+  jobs:
+    renault_setup:
+      name: "Renault Demo — Initial Setup"
+      tasks:
+        - task_key: generate_history
+          notebook_task:
+            notebook_path: ./generators/generate_history.py
+            source: WORKSPACE
+            base_parameters:
+              catalog: ${var.catalog}
+          environment_key: default
+
+        - task_key: run_pipeline
+          depends_on:
+            - task_key: generate_history
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.car_sales_pipeline.id}
+            full_refresh: true
+
+        - task_key: setup_rls
+          depends_on:
+            - task_key: run_pipeline
+          notebook_task:
+            notebook_path: ./rls/setup_rls.py
+            source: WORKSPACE
+            base_parameters:
+              catalog: ${var.catalog}
+          environment_key: default
+
+        - task_key: setup_lakebase
+          depends_on:
+            - task_key: run_pipeline
+          notebook_task:
+            notebook_path: ./lakebase/setup_lakebase.py
+            source: WORKSPACE
+            base_parameters:
+              catalog: ${var.catalog}
+          environment_key: default
+
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
+
+    # ─── Job: daily incremental (run during demo) ───
+    renault_daily:
+      name: "Renault Demo — Generate Next Day"
+      tasks:
+        - task_key: generate_daily
+          notebook_task:
+            notebook_path: ./generators/generate_daily.py
+            source: WORKSPACE
+            base_parameters:
+              catalog: ${var.catalog}
+          environment_key: default
+
+        - task_key: refresh_pipeline
+          depends_on:
+            - task_key: generate_daily
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.car_sales_pipeline.id}
+            full_refresh: false
+
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
