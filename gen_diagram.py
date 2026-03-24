@@ -452,18 +452,20 @@ LB_MID_Y   = (LB_Y1+LB_Y2)//2
 # Horizontal line from Gold right edge to trunk
 draw_line(LX2, GOLD_MID_Y, TRUNK_X, GOLD_MID_Y, DB_BLUE_DARK, 3)
 
-# Vertical trunk covering all consumption targets
-draw_line(TRUNK_X, AIBI_MID_Y, TRUNK_X, LB_MID_Y, DB_BLUE_DARK, 3)
+# Vertical trunk: from Gold level up to AIBI and down to LB
+TOP_TRUNK = min(AIBI_MID_Y, GOLD_MID_Y)
+BOT_TRUNK = max(LB_MID_Y,   GOLD_MID_Y)
+draw_line(TRUNK_X, TOP_TRUNK, TRUNK_X, BOT_TRUNK, DB_BLUE_DARK, 3)
 
 # Arrows from trunk to each consumption box
-draw_arrow(TRUNK_X, AIBI_MID_Y, CON_X1+CON_PAD, AIBI_MID_Y, GREEN_DARK, 3)
+draw_arrow(TRUNK_X, AIBI_MID_Y, CON_X1+CON_PAD, AIBI_MID_Y, GREEN_DARK,  3)
 draw_arrow(TRUNK_X, GEN_MID_Y,  CON_X1+CON_PAD, GEN_MID_Y,  PURPLE_DARK, 3)
-draw_arrow(TRUNK_X, LB_MID_Y,   CON_X1+CON_PAD, LB_MID_Y,   DB_ORANGE, 3)
+draw_arrow(TRUNK_X, LB_MID_Y,   CON_X1+CON_PAD, LB_MID_Y,   DB_ORANGE,   3)
 
 # pill labels on each branch
-pill_label("Gold", TRUNK_X+38, AIBI_MID_Y-22, GREEN_DARK,   GREEN_BG,     scale=1)
-pill_label("Gold", TRUNK_X+38, GEN_MID_Y -22, PURPLE_DARK,  PURPLE_BG,    scale=1)
-pill_label("Gold", TRUNK_X+38, LB_MID_Y  -22, DB_ORANGE,    ORANGE_LIGHT, scale=1)
+pill_label("Gold", TRUNK_X+42, AIBI_MID_Y-24, GREEN_DARK,   GREEN_BG,     scale=1)
+pill_label("Gold", TRUNK_X+42, GEN_MID_Y -24, PURPLE_DARK,  PURPLE_BG,    scale=1)
+pill_label("Gold", TRUNK_X+42, LB_MID_Y  -24, DB_ORANGE,    ORANGE_LIGHT, scale=1)
 
 # Sync back: Lakebase → sync to Delta → Unity Catalog
 # Route: down from Lakebase bottom, left at SYNC_Y level, up into the DP Gold right edge
