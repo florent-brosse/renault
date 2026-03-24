@@ -44,21 +44,38 @@ headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json
 # Get current user for parent_path
 current_user = spark.sql("SELECT current_user()").collect()[0][0]
 
-payload = {
-    "display_name": "Renault - Ventes Automobiles",
-    "parent_path": f"/Users/{current_user}",
-    "serialized_dashboard": json.dumps(dashboard_def)
-}
+DASHBOARD_NAME = "Renault - Ventes Automobiles"
 
-resp = requests.post(f"{host}/api/2.0/lakeview/dashboards", headers=headers, json=payload)
+# Check if dashboard already exists
+existing = requests.get(f"{host}/api/2.0/lakeview/dashboards", headers=headers).json()
+dashboard_id = None
+for d in existing.get("dashboards", []):
+    if d.get("display_name") == DASHBOARD_NAME:
+        dashboard_id = d["dashboard_id"]
+        break
 
-if resp.status_code == 200:
-    result = resp.json()
-    dashboard_id = result["dashboard_id"]
-    print(f"Dashboard created: {dashboard_id}")
-    print(f"URL: {host}/sql/dashboardsv3/{dashboard_id}")
+serialized = json.dumps(dashboard_def)
+
+if dashboard_id:
+    # Update existing
+    resp = requests.patch(f"{host}/api/2.0/lakeview/dashboards/{dashboard_id}", headers=headers,
+                          json={"serialized_dashboard": serialized})
+    if resp.status_code == 200:
+        print(f"Dashboard updated: {dashboard_id}")
+    else:
+        print(f"Update error {resp.status_code}: {resp.text}")
 else:
-    print(f"Error {resp.status_code}: {resp.text}")
+    # Create new
+    resp = requests.post(f"{host}/api/2.0/lakeview/dashboards", headers=headers,
+                         json={"display_name": DASHBOARD_NAME, "parent_path": f"/Users/{current_user}",
+                               "serialized_dashboard": serialized})
+    if resp.status_code == 200:
+        dashboard_id = resp.json()["dashboard_id"]
+        print(f"Dashboard created: {dashboard_id}")
+    else:
+        print(f"Create error {resp.status_code}: {resp.text}")
+
+print(f"URL: {host}/sql/dashboardsv3/{dashboard_id}")
 
 # COMMAND ----------
 
