@@ -1,20 +1,21 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # Renault Demo — Lakebase Setup (Synced Tables)
+# MAGIC # Renault Demo — Lakebase Setup (Synced Tables + Data API + RLS)
 # MAGIC
-# MAGIC The Lakebase project is created by the DAB (`databricks.yml`).
+# MAGIC Fully automated — works on a fresh workspace.
 # MAGIC
-# MAGIC This notebook:
-# MAGIC 1. Enables CDF on Gold tables
-# MAGIC 2. Creates **synced tables** to replicate Gold Delta → Lakebase Postgres (for pgrest)
-# MAGIC 3. Triggers initial sync
+# MAGIC 1. Creates synced tables (Delta Gold → Lakebase Postgres)
+# MAGIC 2. Creates 2 service principals (one per concession group)
+# MAGIC 3. Sets up Postgres roles + RLS policies
+# MAGIC 4. Demos the Data API: each SP sees only their group's data
 # MAGIC
-# MAGIC Synced tables are created in the **source catalog/schema** and auto-appear in
-# MAGIC the Lakebase Postgres database. No UC catalog registration needed.
+# MAGIC **Manual steps** (one-time):
+# MAGIC - Enable Data API: Lakebase UI → Data API → Enable
+# MAGIC - Expose `car_sales` schema: Data API → Advanced settings → Exposed schemas
 
 # COMMAND ----------
 
-# MAGIC %pip install --upgrade databricks-sdk --quiet
+# MAGIC %pip install --upgrade databricks-sdk psycopg2-binary --quiet
 
 # COMMAND ----------
 
@@ -26,44 +27,76 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC ## 1. Enable CDF on Gold tables (required for Triggered/Continuous sync)
+import json, time, requests, psycopg2
+import pandas as pd
+from databricks.sdk import WorkspaceClient
+w = WorkspaceClient()
+workspace_url = w.config.host.rstrip("/")
+workspace_id = dbutils.notebook.entry_point.getDbutils().notebook().getContext().workspaceId().get()
+workspace_token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
+headers = {"Authorization": f"Bearer {workspace_token}"}
+
+LAKEBASE_PROJECT = "renault-lakebase"
 
 # COMMAND ----------
 
-gold_tables = [
-    "listings_detail",
-    "concession_daily_kpis",
-    "model_performance",
-    "group_scorecard",
-]
+# MAGIC %md
+# MAGIC ## 1. Enable CDF on Gold tables
+
+# COMMAND ----------
+
+gold_tables = ["listings_detail", "concession_daily_kpis", "model_performance", "group_scorecard"]
 
 for table in gold_tables:
     fqn = f"{CATALOG}.car_sales.{table}"
     try:
         spark.sql(f"ALTER TABLE {fqn} SET TBLPROPERTIES ('delta.enableChangeDataFeed' = 'true')")
-        print(f"CDF enabled on {fqn}")
+        print(f"CDF enabled: {fqn}")
     except Exception as e:
-        print(f"CDF on {fqn}: {e}")
+        print(f"CDF {fqn}: {e}")
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 2. Create synced tables (Delta → Lakebase)
-# MAGIC
-# MAGIC Synced tables are created in the same catalog/schema as the source.
-# MAGIC They auto-appear in the Lakebase Postgres database as `"car_sales"."table_name_synced"`.
+# MAGIC ## 2. Get Lakebase project IDs
 
 # COMMAND ----------
 
-from databricks.sdk import WorkspaceClient
-from databricks.sdk.service.database import SyncedDatabaseTable, SyncedTableSpec
+# Use REST API to get project info (CLI not authenticated in notebook runtime)
+projects_resp = requests.get(f"{workspace_url}/api/2.0/database/projects", headers=headers)
+projects = projects_resp.json().get("projects", projects_resp.json() if isinstance(projects_resp.json(), list) else [])
 
-w = WorkspaceClient()
+project_uid = None
+for p in projects:
+    if LAKEBASE_PROJECT in p.get("name", ""):
+        project_uid = p["uid"]
+        break
 
-LAKEBASE_PROJECT = "renault-lakebase"
+if not project_uid:
+    print(f"Lakebase project '{LAKEBASE_PROJECT}' not found. Deploy the bundle first.")
+    dbutils.notebook.exit("SKIPPED: Lakebase project not found")
 
-# Primary keys for each Gold table
+branches_resp = requests.get(f"{workspace_url}/api/2.0/database/projects/{LAKEBASE_PROJECT}/branches", headers=headers)
+branches = branches_resp.json().get("branches", branches_resp.json() if isinstance(branches_resp.json(), list) else [])
+branch_uid = branches[0]["uid"]
+branch_name = branches[0]["name"].split("/")[-1]
+
+endpoints_resp = requests.get(f"{workspace_url}/api/2.0/database/projects/{LAKEBASE_PROJECT}/branches/{branch_name}/endpoints", headers=headers)
+endpoints_data = endpoints_resp.json().get("endpoints", endpoints_resp.json() if isinstance(endpoints_resp.json(), list) else [])
+endpoint_host = endpoints_data[0]["status"]["hosts"]["host"]
+endpoint_name = endpoints_data[0]["name"].split("/")[-1]
+
+print(f"Project: {project_uid}")
+print(f"Branch: {branch_uid}")
+print(f"Endpoint: {endpoint_host}")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## 3. Create synced tables (Delta → Lakebase)
+
+# COMMAND ----------
+
 SYNC_CONFIG = [
     {"table": "listings_detail", "pk": ["listing_id"]},
     {"table": "concession_daily_kpis", "pk": ["concession_id", "sale_date"]},
@@ -73,132 +106,277 @@ SYNC_CONFIG = [
 
 for cfg in SYNC_CONFIG:
     source = f"{CATALOG}.car_sales.{cfg['table']}"
-    # Synced table lives in the same catalog/schema as source
     dest = f"{CATALOG}.car_sales.{cfg['table']}_synced"
-    try:
-        synced = w.database.create_synced_database_table(
-            SyncedDatabaseTable(
-                name=dest,
-                spec=SyncedTableSpec(
-                    source_table_full_name=source,
-                    primary_key_columns=cfg["pk"],
-                    scheduling_policy="TRIGGERED"
-                )
-            )
-        )
-        print(f"Synced table created: {source} → Lakebase")
-        print(f"  UC table: {dest}")
-        print(f"  Postgres: \"car_sales\".\"{cfg['table']}_synced\"")
-    except Exception as e:
-        if "already exists" in str(e).lower():
-            print(f"Already exists: {dest}")
-        else:
-            print(f"Sync {cfg['table']} failed: {e}")
+
+    # Check if already exists
+    resp = requests.get(
+        f"{workspace_url}/api/2.0/database/synced_tables/{dest}",
+        headers=headers
+    )
+    if resp.status_code == 200:
+        state = resp.json().get("data_synchronization_status", {}).get("detailed_state", "?")
+        print(f"Already exists: {dest} ({state})")
+        continue
+
+    resp = requests.post(
+        f"{workspace_url}/api/2.0/database/synced_tables",
+        headers=headers,
+        json={
+            "name": dest,
+            "database_project_id": project_uid,
+            "database_branch_id": branch_uid,
+            "logical_database_name": "databricks_postgres",
+            "spec": {
+                "source_table_full_name": source,
+                "primary_key_columns": cfg["pk"],
+                "scheduling_policy": "SNAPSHOT",
+            },
+        },
+    )
+    if resp.status_code == 200:
+        print(f"Created: {dest}")
+    else:
+        print(f"Error {cfg['table']}: {resp.json().get('message', resp.text)[:200]}")
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 3. Trigger initial sync
+# MAGIC ## 4. Wait for sync to complete
 
 # COMMAND ----------
 
+print("Waiting for synced tables to come online...\n")
 for cfg in SYNC_CONFIG:
     dest = f"{CATALOG}.car_sales.{cfg['table']}_synced"
-    try:
-        table_info = w.database.get_synced_database_table(name=dest)
-        pipeline_id = table_info.data_synchronization_status.pipeline_id
-        w.pipelines.start_update(pipeline_id=pipeline_id)
-        print(f"Sync triggered: {dest} (pipeline: {pipeline_id})")
-    except Exception as e:
-        print(f"Trigger {cfg['table']}: {e}")
+    for attempt in range(60):
+        resp = requests.get(f"{workspace_url}/api/2.0/database/synced_tables/{dest}", headers=headers)
+        state = resp.json().get("data_synchronization_status", {}).get("detailed_state", "UNKNOWN")
+        if "ONLINE" in state:
+            print(f"  {cfg['table']}_synced: {state} ✓")
+            break
+        elif "FAILED" in state:
+            print(f"  {cfg['table']}_synced: {state} ✗")
+            break
+        time.sleep(5)
+    else:
+        print(f"  {cfg['table']}_synced: timeout (last state: {state})")
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 4. Query the Data API (REST)
+# MAGIC ## 5. Create 2 Service Principals (one per concession group)
 # MAGIC
-# MAGIC Once Data API is enabled (Lakebase UI → Data API → Enable), query via HTTP.
-# MAGIC Uses workspace token for authentication.
+# MAGIC - **SP Bernard**: sees only Groupe Bernard (GRP-01)
+# MAGIC - **SP Gueudet**: sees only Groupe Gueudet (GRP-02)
 
 # COMMAND ----------
 
-import requests
+SP_CONFIGS = [
+    {"name": "renault-groupe-bernard", "group_id": "GRP-01", "label": "Groupe Bernard"},
+    {"name": "renault-groupe-gueudet", "group_id": "GRP-02", "label": "Groupe Gueudet"},
+]
 
-workspace_url = w.config.host.rstrip("/")
-workspace_id = dbutils.notebook.entry_point.getDbutils().notebook().getContext().workspaceId().get()
-workspace_token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
+# Create or reuse secret scope
+scopes = [s.name for s in dbutils.secrets.listScopes()]
+if "renault-demo" not in scopes:
+    requests.post(f"{workspace_url}/api/2.0/secrets/scopes/create", headers=headers, json={"scope": "renault-demo"})
 
-DATA_API_BASE = f"https://{workspace_url.replace('https://', '')}/api/2.0/workspace/{workspace_id}/rest/databricks_postgres/public"
-rest_headers = {"Authorization": f"Bearer {workspace_token}"}
+sp_credentials = []
 
-print(f"Data API: {DATA_API_BASE}")
+for sp_cfg in SP_CONFIGS:
+    # Check if SP already exists
+    existing_sp = None
+    for sp in w.service_principals.list():
+        if sp.display_name == sp_cfg["name"]:
+            existing_sp = sp
+            break
+
+    if existing_sp:
+        app_id = existing_sp.application_id
+        print(f"SP '{sp_cfg['name']}' already exists: {app_id}")
+        # Try to get existing secret from scope
+        try:
+            secret = dbutils.secrets.get("renault-demo", f"{sp_cfg['name']}-secret")
+            sp_credentials.append({"app_id": app_id, "secret": secret, **sp_cfg})
+            continue
+        except Exception:
+            print(f"  No stored secret — creating new one")
+    else:
+        # Create new SP
+        new_sp = w.service_principals.create(display_name=sp_cfg["name"], active=True)
+        app_id = new_sp.application_id
+        print(f"Created SP '{sp_cfg['name']}': {app_id}")
+
+    # Create OAuth secret
+    secret_resp = requests.post(
+        f"{workspace_url}/api/2.0/accounts/servicePrincipals/{existing_sp.id if existing_sp else new_sp.id}/credentials/secrets",
+        headers=headers
+    )
+    secret_data = secret_resp.json()
+    sp_secret = secret_data["secret"]
+
+    # Store in secrets scope
+    requests.post(f"{workspace_url}/api/2.0/secrets/put", headers=headers,
+                  json={"scope": "renault-demo", "key": f"{sp_cfg['name']}-id", "string_value": app_id})
+    requests.post(f"{workspace_url}/api/2.0/secrets/put", headers=headers,
+                  json={"scope": "renault-demo", "key": f"{sp_cfg['name']}-secret", "string_value": sp_secret})
+
+    # Grant CAN_USE on Lakebase project
+    requests.patch(
+        f"{workspace_url}/api/2.0/permissions/database-projects/{project_uid}",
+        headers=headers,
+        json={"access_control_list": [{"service_principal_name": app_id, "permission_level": "CAN_USE"}]}
+    )
+
+    sp_credentials.append({"app_id": app_id, "secret": sp_secret, **sp_cfg})
+    print(f"  Secret stored, project access granted")
+
+print(f"\n{len(sp_credentials)} SPs ready")
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC #### REST GET — All listings for Groupe Bernard
+# MAGIC ## 6. Set up Postgres roles + RLS
 
 # COMMAND ----------
 
-try:
+# Connect to Lakebase Postgres
+cred_resp = requests.post(
+    f"{workspace_url}/api/2.0/database/projects/{LAKEBASE_PROJECT}/branches/{branch_name}/endpoints/{endpoint_name}/credentials",
+    headers=headers
+)
+pg_cred = cred_resp.json()
+email = w.current_user.me().user_name
+
+conn = psycopg2.connect(
+    host=endpoint_host, port=5432, dbname="databricks_postgres",
+    user=email, password=pg_cred["token"], sslmode="require"
+)
+conn.autocommit = True
+cur = conn.cursor()
+
+cur.execute("CREATE EXTENSION IF NOT EXISTS databricks_auth")
+
+# Create Postgres roles for each SP and grant to authenticator
+for sp in sp_credentials:
+    try:
+        cur.execute(f"SELECT databricks_create_role('{sp['app_id']}', 'SERVICE_PRINCIPAL')")
+        print(f"Created Postgres role: {sp['name']}")
+    except Exception as e:
+        if "already exists" in str(e):
+            print(f"Role exists: {sp['name']}")
+        else:
+            raise
+
+    cur.execute(f'GRANT "{sp["app_id"]}" TO authenticator')
+    cur.execute(f'GRANT USAGE ON SCHEMA car_sales TO "{sp["app_id"]}"')
+    cur.execute(f'GRANT SELECT ON ALL TABLES IN SCHEMA car_sales TO "{sp["app_id"]}"')
+
+# Enable Postgres RLS on synced tables
+for cfg in SYNC_CONFIG:
+    table = f"car_sales.{cfg['table']}_synced"
+    try:
+        cur.execute(f'ALTER TABLE {table} ENABLE ROW LEVEL SECURITY')
+        print(f"RLS enabled: {table}")
+    except Exception as e:
+        print(f"RLS {table}: {e}")
+
+# Create Postgres RLS policies per SP
+for sp in sp_credentials:
+    for cfg in SYNC_CONFIG:
+        table = f"car_sales.{cfg['table']}_synced"
+        policy_name = f"rls_{sp['name'].replace('-', '_')}_{cfg['table']}"
+        # Check if table has group_id column
+        if cfg["table"] in ["listings_detail", "concession_daily_kpis", "group_scorecard"]:
+            filter_col = "group_id"
+        else:
+            continue  # model_performance has no group_id
+
+        try:
+            cur.execute(f'DROP POLICY IF EXISTS {policy_name} ON {table}')
+            cur.execute(f"""
+                CREATE POLICY {policy_name} ON {table}
+                TO "{sp['app_id']}"
+                USING ({filter_col} = '{sp['group_id']}')
+            """)
+            print(f"Policy: {sp['name']} → {cfg['table']} ({filter_col} = '{sp['group_id']}')")
+        except Exception as e:
+            print(f"Policy {policy_name}: {e}")
+
+cur.execute("NOTIFY pgrst, 'reload schema'")
+conn.close()
+print("\nPostgres RLS configured ✓")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## 7. Demo: Data API with RLS
+# MAGIC
+# MAGIC Each SP gets an OAuth token and queries the same endpoint.
+# MAGIC **Different results** — each sees only their concession group's data.
+
+# COMMAND ----------
+
+DATA_API_BASE = f"https://{endpoint_host}/api/2.0/workspace/{workspace_id}/rest/databricks_postgres/car_sales"
+
+for sp in sp_credentials:
+    # Get OAuth token for this SP
+    token_resp = requests.post(
+        f"{workspace_url}/oidc/v1/token",
+        data={
+            "grant_type": "client_credentials",
+            "client_id": sp["app_id"],
+            "client_secret": sp["secret"],
+            "scope": "all-apis",
+        },
+    )
+    sp_token = token_resp.json()["access_token"]
+
+    print(f"\n{'='*60}")
+    print(f"  {sp['label']} ({sp['name']})")
+    print(f"  Allowed: {sp['group_id']}")
+    print(f"{'='*60}")
+
+    # Query listings
     resp = requests.get(
         f"{DATA_API_BASE}/listings_detail_synced",
-        headers=rest_headers,
-        params={"group_id": "eq.GRP-01", "limit": "5"}
+        headers={"Authorization": f"Bearer {sp_token}"},
+        params={"select": "listing_id,brand,model,price,etat,concession_name,group_id", "limit": "5"}
     )
     if resp.status_code == 200:
         data = resp.json()
-        print(f"Data API returned {len(data)} rows for GRP-01")
+        print(f"\n  Listings: {len(data)} rows returned (limit 5)")
         if data:
-            import pandas as pd
             display(spark.createDataFrame(pd.DataFrame(data)))
     else:
-        print(f"Data API response: {resp.status_code} — {resp.text[:200]}")
-        print("Ensure Data API is enabled: Lakebase UI → Data API → Enable")
-except Exception as e:
-    print(f"Data API test: {e}")
-    print("Ensure Data API is enabled and synced tables are online.")
+        print(f"  Error: {resp.status_code} — {resp.text[:200]}")
 
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC #### REST GET — Concession KPIs filtered by region
-
-# COMMAND ----------
-
-try:
+    # Count total visible rows
     resp = requests.get(
-        f"{DATA_API_BASE}/concession_daily_kpis_synced",
-        headers=rest_headers,
-        params={"region": "eq.Île-de-France", "limit": "10", "order": "sale_date.desc"}
+        f"{DATA_API_BASE}/listings_detail_synced",
+        headers={"Authorization": f"Bearer {sp_token}", "Prefer": "count=exact", "Range-Unit": "items", "Range": "0-0"}
     )
-    if resp.status_code == 200:
-        data = resp.json()
-        print(f"Data API returned {len(data)} KPI rows for Île-de-France")
-        if data:
-            import pandas as pd
-            display(spark.createDataFrame(pd.DataFrame(data)))
-    else:
-        print(f"Response: {resp.status_code}")
-except Exception as e:
-    print(f"Data API test: {e}")
+    total = resp.headers.get("Content-Range", "?")
+    print(f"\n  Total visible rows: {total}")
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 5. Summary
+# MAGIC ## 8. Summary
 
 # COMMAND ----------
 
 print("=" * 60)
-print("  LAKEBASE SETUP COMPLETE")
+print("  LAKEBASE + DATA API + RLS COMPLETE")
 print("=" * 60)
-print(f"\n  Lakebase project: {LAKEBASE_PROJECT}")
-print(f"\n  Synced tables (Delta → Lakebase Postgres):")
+print(f"\n  Synced tables (Delta → Postgres):")
 for cfg in SYNC_CONFIG:
-    print(f"    {CATALOG}.car_sales.{cfg['table']} → \"{cfg['table']}_synced\"")
-print(f"\n  Sync mode: TRIGGERED")
-print(f"\n  Data API (PostgREST):")
-print(f"    Base URL: {DATA_API_BASE}")
-print(f"    Example: GET {DATA_API_BASE}/listings_detail_synced?group_id=eq.GRP-01")
-print(f"\n  Manual step: Enable Data API in Lakebase UI if not done")
+    print(f"    car_sales.{cfg['table']}_synced")
+print(f"\n  Service Principals:")
+for sp in sp_credentials:
+    print(f"    {sp['name']} → sees {sp['group_id']} ({sp['label']})")
+print(f"\n  Data API: {DATA_API_BASE}")
+print(f"\n  Postgres RLS: each SP filtered by group_id")
+print(f"\n  Manual steps (one-time):")
+print(f"    1. Enable Data API: Lakebase UI → Data API → Enable")
+print(f"    2. Expose schemas: Data API → Advanced → add 'car_sales'")
