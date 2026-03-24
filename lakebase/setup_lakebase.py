@@ -73,7 +73,7 @@ print("Skipping CDF — Gold tables are materialized views, using SNAPSHOT sync 
 
 # COMMAND ----------
 
-projects_resp = requests.get(f"{workspace_url}/api/2.0/database/projects", headers=headers)
+projects_resp = requests.get(f"{workspace_url}/api/2.0/postgres/projects", headers=headers)
 projects_resp.raise_for_status()
 projects = projects_resp.json() if isinstance(projects_resp.json(), list) else projects_resp.json().get("projects", [])
 
@@ -85,13 +85,13 @@ for p in projects:
 
 assert project_uid, f"Lakebase project '{LAKEBASE_PROJECT}' not found. Run 'databricks bundle deploy' first."
 
-branches_resp = requests.get(f"{workspace_url}/api/2.0/database/projects/{LAKEBASE_PROJECT}/branches", headers=headers)
+branches_resp = requests.get(f"{workspace_url}/api/2.0/postgres/projects/{LAKEBASE_PROJECT}/branches", headers=headers)
 branches_resp.raise_for_status()
 branches = branches_resp.json() if isinstance(branches_resp.json(), list) else branches_resp.json().get("branches", [])
 branch_uid = branches[0]["uid"]
 branch_name = branches[0]["name"].split("/")[-1]
 
-endpoints_resp = requests.get(f"{workspace_url}/api/2.0/database/projects/{LAKEBASE_PROJECT}/branches/{branch_name}/endpoints", headers=headers)
+endpoints_resp = requests.get(f"{workspace_url}/api/2.0/postgres/projects/{LAKEBASE_PROJECT}/branches/{branch_name}/endpoints", headers=headers)
 endpoints_resp.raise_for_status()
 endpoints_data = endpoints_resp.json() if isinstance(endpoints_resp.json(), list) else endpoints_resp.json().get("endpoints", [])
 endpoint_host = endpoints_data[0]["status"]["hosts"]["host"]
@@ -251,18 +251,14 @@ print(f"\n{len(sp_credentials)} SPs ready")
 
 # COMMAND ----------
 
-# Get Postgres credentials
-cred_resp = requests.post(
-    f"{workspace_url}/api/2.0/database/projects/{LAKEBASE_PROJECT}/branches/{branch_name}/endpoints/{endpoint_name}/credentials",
-    headers=headers
-)
-cred_resp.raise_for_status()
-pg_cred = cred_resp.json()
+# Get Postgres credentials via SDK
+import uuid
+pg_cred = w.database.generate_database_credential(request_id=str(uuid.uuid4()))
 email = w.current_user.me().user_name
 
 conn = psycopg2.connect(
     host=endpoint_host, port=5432, dbname="databricks_postgres",
-    user=email, password=pg_cred["token"], sslmode="require"
+    user=email, password=pg_cred.token, sslmode="require"
 )
 conn.autocommit = True
 cur = conn.cursor()
