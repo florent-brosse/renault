@@ -10,9 +10,20 @@
 import json
 import requests
 
-# Load dashboard definition
+# Get catalog from widget
+try:
+    dbutils.widgets.text("catalog", "renault_demo", "Catalog name")
+    CATALOG = dbutils.widgets.get("catalog")
+except Exception:
+    CATALOG = "renault_demo"
+
+# Load dashboard definition and replace catalog placeholder
 with open("/Workspace" + dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().rsplit("/", 1)[0] + "/renault_car_sales_dashboard.json") as f:
-    dashboard_def = json.load(f)
+    raw = f.read()
+
+# Replace the catalog name in all queries
+raw = raw.replace("serverless_stable_le1wzb_catalog", CATALOG).replace("renault_demo", CATALOG)
+dashboard_def = json.loads(raw)
 
 # Get workspace URL and token
 host = spark.conf.get("spark.databricks.workspaceUrl", "")
