@@ -2,24 +2,17 @@
 # MAGIC %md
 # MAGIC # Renault Demo — Lakebase Setup
 # MAGIC
-# MAGIC ## Prerequisites (manual, one-time)
+# MAGIC The Lakebase project + branch + endpoint are created by the DAB (`databricks.yml`).
 # MAGIC
-# MAGIC Lakebase projects must be created via the UI:
+# MAGIC This notebook:
+# MAGIC 1. Registers the Lakebase project as a Unity Catalog catalog (if not already done)
+# MAGIC 2. Creates reference tables in Lakebase
+# MAGIC 3. Seeds them with concession group data
+# MAGIC 4. Shows cross-catalog queries (Lakebase + Delta)
 # MAGIC
-# MAGIC 1. Go to **Apps switcher → Lakebase Postgres**
-# MAGIC 2. Click **New project**, name it `renault_lakebase`
-# MAGIC 3. Once created, go to **Catalog Explorer → + → Create a catalog**
-# MAGIC 4. Select **Lakebase Postgres** type, **Autoscaling** option
-# MAGIC 5. Select your project, branch (`production`), database (`databricks_postgres`)
-# MAGIC 6. Name the catalog (e.g., `renault_lakebase`) → **Create**
-# MAGIC
-# MAGIC Then set the `lakebase_catalog` widget below and run this notebook.
-# MAGIC
-# MAGIC ## What this notebook does
-# MAGIC
-# MAGIC 1. Creates reference tables in Lakebase (CRUD-enabled for the App)
-# MAGIC 2. Seeds them with concession group data
-# MAGIC 3. Shows how to query Lakebase + Delta together
+# MAGIC **Prerequisite**: The Lakebase project must be deployed first (`databricks bundle deploy`).
+# MAGIC If the catalog doesn't exist yet, register it via:
+# MAGIC Catalog Explorer → + → Create catalog → Lakebase Postgres → select `renault-lakebase` project
 
 # COMMAND ----------
 
@@ -41,21 +34,17 @@ try:
     spark.sql(f"DESCRIBE CATALOG {LAKEBASE_CATALOG}")
     print(f"Lakebase catalog '{LAKEBASE_CATALOG}' found — proceeding with setup")
 except Exception as e:
-    print(f"⚠ Lakebase catalog '{LAKEBASE_CATALOG}' not found. Skipping Lakebase setup.")
-    print(f"  Create it via UI: Catalog Explorer → + → Create catalog → Lakebase Postgres")
-    dbutils.notebook.exit("SKIPPED: Lakebase catalog not found")
+    print(f"Lakebase catalog '{LAKEBASE_CATALOG}' not found. Skipping Lakebase setup.")
+    print(f"  Register it via: Catalog Explorer → + → Create catalog → Lakebase Postgres → select 'renault-lakebase'")
+    dbutils.notebook.exit("SKIPPED: Lakebase catalog not found — register it in Catalog Explorer first")
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ## 1. Create reference tables in Lakebase (CRUD-enabled)
-# MAGIC
-# MAGIC These tables live natively in Lakebase Postgres and can be updated via SQL or REST.
-# MAGIC A Databricks App can CRUD these tables directly.
 
 # COMMAND ----------
 
-# Reference tables for the optional Databricks App to manage
 spark.sql(f"""
 CREATE TABLE IF NOT EXISTS {LAKEBASE_CATALOG}.public.ref_concession_groups (
   group_id VARCHAR(10) PRIMARY KEY,
@@ -84,7 +73,7 @@ print("Reference tables created in Lakebase")
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 2. Seed reference tables with initial data
+# MAGIC ## 2. Seed reference tables
 
 # COMMAND ----------
 
@@ -101,9 +90,7 @@ print(f"Seeded {len(CONCESSION_GROUPS)} concession groups into Lakebase")
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 3. Query Lakebase + Delta together
-# MAGIC
-# MAGIC This is the power of UC — join OLTP (Lakebase) and analytical (Delta) data in one query.
+# MAGIC ## 3. Cross-catalog query (Lakebase + Delta)
 
 # COMMAND ----------
 
@@ -137,4 +124,3 @@ print(f"\n  Reference tables (CRUD via SQL/App):")
 print(f"    {LAKEBASE_CATALOG}.public.ref_concession_groups")
 print(f"    {LAKEBASE_CATALOG}.public.ref_price_adjustments")
 print(f"\n  Cross-catalog query: Lakebase + Delta in single SQL")
-print(f"\n  To expose via REST: Use a Databricks App with Lakebase resource")

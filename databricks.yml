@@ -18,6 +18,13 @@ targets:
       catalog: serverless_stable_le1wzb_catalog
 
 resources:
+  # ─── Lakebase Postgres Project ───
+  postgres_projects:
+    renault_lakebase:
+      project_id: renault-lakebase
+      display_name: "Renault Lakebase"
+      pg_version: 17
+
   # ─── Declarative Pipeline: Bronze → Silver → Gold ───
   pipelines:
     car_sales_pipeline:
