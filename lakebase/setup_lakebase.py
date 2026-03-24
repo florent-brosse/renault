@@ -36,6 +36,15 @@ except Exception:
 print(f"Lakebase catalog: {LAKEBASE_CATALOG}")
 print(f"Delta catalog: {CATALOG}")
 
+# Check if Lakebase catalog exists — skip gracefully if not
+try:
+    spark.sql(f"DESCRIBE CATALOG {LAKEBASE_CATALOG}")
+    print(f"Lakebase catalog '{LAKEBASE_CATALOG}' found — proceeding with setup")
+except Exception as e:
+    print(f"⚠ Lakebase catalog '{LAKEBASE_CATALOG}' not found. Skipping Lakebase setup.")
+    print(f"  Create it via UI: Catalog Explorer → + → Create catalog → Lakebase Postgres")
+    dbutils.notebook.exit("SKIPPED: Lakebase catalog not found")
+
 # COMMAND ----------
 
 # MAGIC %md
@@ -51,7 +60,7 @@ spark.sql(f"""
 CREATE TABLE IF NOT EXISTS {LAKEBASE_CATALOG}.public.ref_concession_groups (
   group_id VARCHAR(10) PRIMARY KEY,
   group_name VARCHAR(100) NOT NULL,
-  regions TEXT,
+  regions STRING,
   contact_email VARCHAR(200),
   is_active BOOLEAN DEFAULT TRUE
 )
