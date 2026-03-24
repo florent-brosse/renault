@@ -60,12 +60,11 @@ LAKEBASE_PROJECT = "renault-lakebase"
 
 # COMMAND ----------
 
+# Gold tables are materialized views — CDF can't be enabled on them.
+# Synced tables use SNAPSHOT mode which doesn't require CDF.
+# CDF is only needed for TRIGGERED/CONTINUOUS sync modes.
 gold_tables = ["listings_detail", "concession_daily_kpis", "model_performance", "group_scorecard"]
-
-for table in gold_tables:
-    fqn = f"{CATALOG}.car_sales.{table}"
-    spark.sql(f"ALTER TABLE {fqn} SET TBLPROPERTIES ('delta.enableChangeDataFeed' = 'true')")
-    print(f"CDF enabled: {fqn}")
+print("Skipping CDF — Gold tables are materialized views, using SNAPSHOT sync mode")
 
 # COMMAND ----------
 
