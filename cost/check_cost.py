@@ -80,7 +80,7 @@
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC -- Lakebase cost (no custom tags — tracked by billing_origin_product)
+# MAGIC -- Lakebase cost (tagged via API: project=renault-demo)
 # MAGIC SELECT
 # MAGIC   billing_origin_product,
 # MAGIC   sku_name,
