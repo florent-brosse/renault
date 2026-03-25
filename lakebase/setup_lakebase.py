@@ -252,7 +252,9 @@ print(f"\n{len(sp_credentials)} SPs ready")
 # COMMAND ----------
 
 # Generate Postgres credential for Autoscaling project
-pg_cred = w.postgres.generate_database_credential()
+pg_cred = w.postgres.generate_database_credential(
+    endpoint=f"projects/{LAKEBASE_PROJECT}/branches/{branch_name}/endpoints/{endpoint_name}"
+)
 email = w.current_user.me().user_name
 
 conn = psycopg2.connect(
