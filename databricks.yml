@@ -5,6 +5,9 @@ variables:
   catalog:
     description: "Unity Catalog name for all Renault demo tables"
     default: renault_demo
+  demo_tag:
+    description: "Tag for cost tracking"
+    default: renault-demo
 
 workspace:
   host: https://fevm-serverless-stable-le1wzb.cloud.databricks.com
@@ -18,7 +21,6 @@ targets:
       catalog: serverless_stable_le1wzb_catalog
 
 resources:
-  # ─── Lakebase Postgres Project ───
   # ─── Lakebase Postgres (for pgrest API exposure) ───
   postgres_projects:
     renault_lakebase:
@@ -42,10 +44,15 @@ resources:
       configuration:
         renault_catalog: ${var.catalog}
 
-  # ─── Job: Initial Setup (history + pipeline + RLS + Lakebase) ───
+  # ─── SQL Warehouse: created via API in setup job (DAB doesn't support warehouses) ───
+
+  # ─── Job: Initial Setup ───
   jobs:
     renault_setup:
       name: "Renault Demo — Initial Setup"
+      tags:
+        project: ${var.demo_tag}
+        customer: renault
       tasks:
         - task_key: generate_history
           notebook_task:
@@ -110,6 +117,9 @@ resources:
     # ─── Job: daily incremental (run during demo) ───
     renault_daily:
       name: "Renault Demo — Generate Next Day"
+      tags:
+        project: ${var.demo_tag}
+        customer: renault
       tasks:
         - task_key: generate_daily
           notebook_task:
