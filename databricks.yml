@@ -41,6 +41,9 @@ resources:
       libraries:
         - notebook:
             path: ./pipeline/car_sales_pipeline.py
+      tags:
+        project: ${var.demo_tag}
+        customer: renault
       configuration:
         renault_catalog: ${var.catalog}
 
