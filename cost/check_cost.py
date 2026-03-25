@@ -3,7 +3,9 @@
 # MAGIC # Renault Demo — Cost Analysis
 # MAGIC
 # MAGIC Query system tables to see total cost of the demo, broken down by SKU.
-# MAGIC All resources are tagged with `project=renault-demo` for filtering.
+# MAGIC Jobs are tagged with `project=renault-demo`.
+# MAGIC Serverless pipeline costs are tracked via `dlt_pipeline_id` (budget policies needed for custom tags on serverless).
+# MAGIC SQL warehouse costs are tracked via warehouse tags.
 
 # COMMAND ----------
 
@@ -56,8 +58,26 @@
 
 # COMMAND ----------
 
+# COMMAND ----------
+
 # MAGIC %sql
-# MAGIC -- Grand total
+# MAGIC -- Pipeline cost (serverless — tracked by pipeline ID, not tags)
+# MAGIC SELECT
+# MAGIC   sku_name,
+# MAGIC   ROUND(SUM(usage_quantity), 2) AS total_dbus,
+# MAGIC   ROUND(SUM(usage_quantity) * 0.07, 2) AS estimated_cost_usd
+# MAGIC FROM system.billing.usage
+# MAGIC WHERE usage_metadata.dlt_pipeline_id IN (
+# MAGIC   SELECT pipeline_id FROM system.lakeflow.pipelines
+# MAGIC   WHERE name LIKE '%Renault%'
+# MAGIC )
+# MAGIC   AND usage_date >= '2025-10-01'
+# MAGIC GROUP BY sku_name
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC -- Grand total (jobs + warehouse via tags, pipeline via ID)
 # MAGIC SELECT
 # MAGIC   ROUND(SUM(usage_quantity), 2) AS total_dbus,
 # MAGIC   ROUND(SUM(usage_quantity) * 0.07, 2) AS estimated_cost_usd,
@@ -65,5 +85,10 @@
 # MAGIC   MIN(usage_date) AS first_usage,
 # MAGIC   MAX(usage_date) AS last_usage
 # MAGIC FROM system.billing.usage
-# MAGIC WHERE custom_tags['project'] = 'renault-demo'
-# MAGIC   AND usage_date >= '2025-10-01'
+# MAGIC WHERE (
+# MAGIC   custom_tags['project'] = 'renault-demo'
+# MAGIC   OR usage_metadata.dlt_pipeline_id IN (
+# MAGIC     SELECT pipeline_id FROM system.lakeflow.pipelines WHERE name LIKE '%Renault%'
+# MAGIC   )
+# MAGIC )
+# MAGIC AND usage_date >= '2025-10-01'
