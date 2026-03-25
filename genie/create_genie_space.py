@@ -280,7 +280,8 @@ current_email = spark.sql("SELECT current_user()").collect()[0][0]
 
 # Check if Genie space already exists — update instead of creating duplicate
 existing_space_id = None
-for s in w.genie.list_spaces():
+resp = w.genie.list_spaces()
+for s in getattr(resp, 'spaces', []) or []:
     if s.title == GENIE_TITLE:
         existing_space_id = s.space_id
         break
