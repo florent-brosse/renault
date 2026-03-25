@@ -99,7 +99,7 @@ resources:
           depends_on:
             - task_key: setup_lakebase
           notebook_task:
-            notebook_path: ./lakebase/setup_lakebase.py
+            notebook_path: ./rls/setup_rls.py
             source: WORKSPACE
             base_parameters:
               catalog: ${var.catalog}
