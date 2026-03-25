@@ -127,7 +127,16 @@ renault/
 # 1. Destroy DAB resources (jobs, pipeline, warehouse, Lakebase project, workspace files)
 databricks bundle destroy --auto-approve
 
-# 2. Delete synced table pipelines (created by Lakebase setup, not DAB-managed)
+# 2. Delete Genie spaces and dashboards
+databricks api get "/api/2.0/genie/spaces" \
+  | python3 -c "import sys,json; [print(s['space_id']) for s in json.load(sys.stdin).get('spaces',[]) if 'Renault' in s.get('title','')]" \
+  | while read sid; do databricks api delete "/api/2.0/genie/spaces/$sid"; done
+
+databricks api get "/api/2.0/lakeview/dashboards" \
+  | python3 -c "import sys,json; [print(d['dashboard_id']) for d in json.load(sys.stdin).get('dashboards',[]) if 'Renault' in d.get('display_name','')]" \
+  | while read did; do databricks api delete "/api/2.0/lakeview/dashboards/$did"; done
+
+# 3. Delete synced table pipelines (created by Lakebase setup, not DAB-managed)
 databricks api get "/api/2.0/pipelines?filter=name+LIKE+'%25synced%25car_sales%25'&max_results=10" --profile fevm \
   | python3 -c "import sys,json; [print(p['pipeline_id']) for p in json.load(sys.stdin).get('statuses',[])]" \
   | while read pid; do databricks api delete "/api/2.0/pipelines/$pid"; done

@@ -275,19 +275,34 @@ serialized_space = sort_genie_space(serialized_space)
 
 # COMMAND ----------
 
-try:
+GENIE_TITLE = "Renault - Ventes Automobiles"
+current_email = spark.sql("SELECT current_user()").collect()[0][0]
+
+# Check if Genie space already exists — update instead of creating duplicate
+existing_space_id = None
+for s in w.genie.list_spaces():
+    if s.title == GENIE_TITLE:
+        existing_space_id = s.space_id
+        break
+
+if existing_space_id:
+    w.genie.update_space(
+        space_id=existing_space_id,
+        warehouse_id=warehouse_id,
+        title=GENIE_TITLE,
+        description="Analytics ventes automobiles du réseau Renault/Dacia/Alpine.",
+        serialized_space=json.dumps(serialized_space),
+    )
+    print(f"Genie space updated: {existing_space_id}")
+else:
     space = w.genie.create_space(
         warehouse_id=warehouse_id,
-        title="Renault - Ventes Automobiles",
-        description="Analytics ventes automobiles du réseau Renault/Dacia/Alpine. Volumes, CA, mix énergie, performance modèles, classement groupes de concessions.",
+        title=GENIE_TITLE,
+        description="Analytics ventes automobiles du réseau Renault/Dacia/Alpine.",
         serialized_space=json.dumps(serialized_space),
-        parent_path=f"/Workspace/Users/{spark.sql('SELECT current_user()').collect()[0][0]}"
+        parent_path=f"/Workspace/Users/{current_email}"
     )
-    print(f"Genie space created!")
-    print(f"  Space ID: {space.space_id}")
-    print(f"  Title: {space.title}")
-    print(f"  URL: Open your workspace and navigate to AI/BI Genie -> '{space.title}'")
-except Exception as e:
-    print(f"Genie space creation failed:\n   {e}")
-    print(f"\nSerialized space JSON (for manual creation):")
-    print(json.dumps(serialized_space, indent=2, ensure_ascii=False))
+    existing_space_id = space.space_id
+    print(f"Genie space created: {existing_space_id}")
+
+print(f"  Navigate to AI/BI Genie → '{GENIE_TITLE}'")
