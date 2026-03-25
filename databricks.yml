@@ -85,6 +85,16 @@ resources:
             pipeline_id: ${resources.pipelines.car_sales_pipeline.id}
             full_refresh: true
 
+        - task_key: setup_rls
+          depends_on:
+            - task_key: run_pipeline
+          notebook_task:
+            notebook_path: ./rls/setup_rls.py
+            source: WORKSPACE
+            base_parameters:
+              catalog: ${var.catalog}
+          environment_key: default
+
         - task_key: setup_lakebase
           depends_on:
             - task_key: run_pipeline
@@ -95,19 +105,9 @@ resources:
               catalog: ${var.catalog}
           environment_key: default
 
-        - task_key: setup_rls
-          depends_on:
-            - task_key: setup_lakebase
-          notebook_task:
-            notebook_path: ./rls/setup_rls.py
-            source: WORKSPACE
-            base_parameters:
-              catalog: ${var.catalog}
-          environment_key: default
-
         - task_key: create_genie_space
           depends_on:
-            - task_key: run_pipeline
+            - task_key: setup_rls
           notebook_task:
             notebook_path: ./genie/create_genie_space.py
             source: WORKSPACE
@@ -117,7 +117,7 @@ resources:
 
         - task_key: deploy_dashboard
           depends_on:
-            - task_key: run_pipeline
+            - task_key: setup_rls
           notebook_task:
             notebook_path: ./dashboards/deploy_dashboard.py
             source: WORKSPACE
