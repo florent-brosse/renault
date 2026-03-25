@@ -71,7 +71,7 @@
 # MAGIC FROM system.billing.usage
 # MAGIC WHERE usage_metadata.dlt_pipeline_id IN (
 # MAGIC   SELECT pipeline_id FROM system.lakeflow.pipelines
-# MAGIC   WHERE name LIKE '%Renault%' OR name LIKE '%synced%car_sales%'
+# MAGIC   WHERE name ILIKE '%renault%' OR name ILIKE '%synced%car_sales%'
 # MAGIC )
 # MAGIC   AND usage_date >= CURRENT_DATE - INTERVAL 7 DAYS
 # MAGIC GROUP BY ALL
@@ -105,7 +105,7 @@
 # MAGIC   custom_tags['project'] = 'renault-demo'
 # MAGIC   OR usage_metadata.dlt_pipeline_id IN (
 # MAGIC     SELECT pipeline_id FROM system.lakeflow.pipelines
-# MAGIC     WHERE name LIKE '%Renault%' OR name LIKE '%synced%car_sales%'
+# MAGIC     WHERE name ILIKE '%renault%' OR name ILIKE '%synced%car_sales%'
 # MAGIC   )
 # MAGIC   OR billing_origin_product IN ('LAKEBASE', 'DATABASE')
 # MAGIC )
