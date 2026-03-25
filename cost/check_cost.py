@@ -61,18 +61,21 @@
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC -- Pipeline cost (serverless — tracked by pipeline ID, not tags)
+# MAGIC -- Pipeline + synced tables cost (by pipeline ID, billing_origin_product = DLT or DATABASE)
 # MAGIC SELECT
+# MAGIC   billing_origin_product,
 # MAGIC   sku_name,
-# MAGIC   ROUND(SUM(usage_quantity), 2) AS total_dbus,
-# MAGIC   ROUND(SUM(usage_quantity) * 0.07, 2) AS estimated_cost_usd
+# MAGIC   usage_metadata.dlt_pipeline_id AS pipeline_id,
+# MAGIC   ROUND(SUM(usage_quantity), 4) AS total_dbus,
+# MAGIC   ROUND(SUM(usage_quantity) * 0.07, 4) AS estimated_cost_usd
 # MAGIC FROM system.billing.usage
 # MAGIC WHERE usage_metadata.dlt_pipeline_id IN (
 # MAGIC   SELECT pipeline_id FROM system.lakeflow.pipelines
-# MAGIC   WHERE name LIKE '%Renault%'
+# MAGIC   WHERE name LIKE '%Renault%' OR name LIKE '%synced%car_sales%'
 # MAGIC )
-# MAGIC   AND usage_date >= '2025-10-01'
-# MAGIC GROUP BY sku_name
+# MAGIC   AND usage_date >= CURRENT_DATE - INTERVAL 7 DAYS
+# MAGIC GROUP BY ALL
+# MAGIC ORDER BY total_dbus DESC
 
 # COMMAND ----------
 
