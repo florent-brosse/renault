@@ -154,7 +154,31 @@ for cfg in SYNC_CONFIG:
 
 # COMMAND ----------
 
-print("Waiting for synced tables to come online...\n")
+DEMO_TAG = "renault-demo"
+
+# Tag the sync pipelines for cost tracking
+print("Tagging sync pipelines...\n")
+for cfg in SYNC_CONFIG:
+    dest = f"{CATALOG}.car_sales.{cfg['table']}_synced"
+    resp = requests.get(f"{workspace_url}/api/2.0/database/synced_tables/{dest}", headers=headers)
+    if resp.status_code == 200:
+        pipeline_id = resp.json().get("data_synchronization_status", {}).get("pipeline_id")
+        if pipeline_id:
+            # Get current pipeline spec and add tags
+            pipe_resp = requests.get(f"{workspace_url}/api/2.0/pipelines/{pipeline_id}", headers=headers)
+            if pipe_resp.status_code == 200:
+                pipe_spec = pipe_resp.json().get("spec", {})
+                current_tags = pipe_spec.get("tags", {})
+                current_tags["project"] = DEMO_TAG
+                current_tags["customer"] = "renault"
+                requests.put(
+                    f"{workspace_url}/api/2.0/pipelines/{pipeline_id}",
+                    headers=headers,
+                    json={**pipe_spec, "tags": current_tags, "id": pipeline_id}
+                )
+                print(f"  Tagged pipeline {pipeline_id} for {cfg['table']}_synced")
+
+print("\nWaiting for synced tables to come online...\n")
 for cfg in SYNC_CONFIG:
     dest = f"{CATALOG}.car_sales.{cfg['table']}_synced"
     for attempt in range(60):
