@@ -190,20 +190,44 @@ if not abac_success:
 current_user = spark.sql("SELECT current_user()").collect()[0][0]
 print(f"Current user: {current_user}")
 
-# Test: count per group (admin should see all)
-df_test = spark.sql(f"""
-SELECT group_id, count(*) as cnt
-FROM {CATALOG}.{SCHEMA_CAR_SALES}.listings_detail
-GROUP BY group_id ORDER BY group_id
-""")
-df_test.show()
+# ─── Test 1: Admin sees ALL groups ───
+total_admin = spark.sql(f"SELECT count(*) FROM {CATALOG}.{SCHEMA_CAR_SALES}.listings_detail").collect()[0][0]
+groups_admin = spark.sql(f"SELECT count(distinct group_id) FROM {CATALOG}.{SCHEMA_CAR_SALES}.listings_detail").collect()[0][0]
+print(f"\n[TEST 1] As admin: {total_admin:,} rows across {groups_admin} groups")
+assert groups_admin == 8, f"Admin should see 8 groups, got {groups_admin}"
 
-total = spark.sql(f"SELECT count(*) FROM {CATALOG}.{SCHEMA_CAR_SALES}.listings_detail").collect()[0][0]
-groups = spark.sql(f"SELECT count(distinct group_id) FROM {CATALOG}.{SCHEMA_CAR_SALES}.listings_detail").collect()[0][0]
-print(f"\nVisible: {total:,} rows across {groups} groups")
+# ─── Test 2: Switch to GRP-01 — should see ONLY GRP-01 ───
+spark.sql(f"DELETE FROM {CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping WHERE user_or_group = '{current_user}'")
+spark.sql(f"INSERT INTO {CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping VALUES ('{current_user}', 'GRP-01', 'Groupe Bernard', FALSE)")
 
-if not abac_success:
-    print(f"\nTo test restricted access:")
-    print(f"  INSERT INTO {CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping")
-    print(f"  VALUES ('{current_user}', 'GRP-01', 'Groupe Bernard', FALSE)")
-    print(f"  -- Then re-query: only GRP-01 rows visible")
+total_grp01 = spark.sql(f"SELECT count(*) FROM {CATALOG}.{SCHEMA_CAR_SALES}.listings_detail").collect()[0][0]
+groups_grp01 = spark.sql(f"SELECT count(distinct group_id) FROM {CATALOG}.{SCHEMA_CAR_SALES}.listings_detail").collect()[0][0]
+print(f"[TEST 2] As GRP-01: {total_grp01:,} rows across {groups_grp01} group(s)")
+assert groups_grp01 == 1, f"GRP-01 user should see 1 group, got {groups_grp01}"
+assert total_grp01 < total_admin, f"GRP-01 should see fewer rows than admin"
+
+# ─── Test 3: Switch to GRP-02 — should see ONLY GRP-02 ───
+spark.sql(f"DELETE FROM {CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping WHERE user_or_group = '{current_user}'")
+spark.sql(f"INSERT INTO {CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping VALUES ('{current_user}', 'GRP-02', 'Groupe Gueudet', FALSE)")
+
+total_grp02 = spark.sql(f"SELECT count(*) FROM {CATALOG}.{SCHEMA_CAR_SALES}.listings_detail").collect()[0][0]
+groups_grp02 = spark.sql(f"SELECT count(distinct group_id) FROM {CATALOG}.{SCHEMA_CAR_SALES}.listings_detail").collect()[0][0]
+print(f"[TEST 3] As GRP-02: {total_grp02:,} rows across {groups_grp02} group(s)")
+assert groups_grp02 == 1, f"GRP-02 user should see 1 group, got {groups_grp02}"
+assert total_grp02 != total_grp01, f"GRP-01 and GRP-02 should see different row counts"
+
+# ─── Restore admin ───
+spark.sql(f"DELETE FROM {CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping WHERE user_or_group = '{current_user}'")
+spark.sql(f"INSERT INTO {CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping VALUES ('{current_user}', NULL, NULL, TRUE)")
+
+total_restored = spark.sql(f"SELECT count(*) FROM {CATALOG}.{SCHEMA_CAR_SALES}.listings_detail").collect()[0][0]
+print(f"[TEST 4] Admin restored: {total_restored:,} rows")
+assert total_restored == total_admin, f"Admin should see same rows as before"
+
+print(f"\n{'='*60}")
+print(f"  RLS VERIFIED")
+print(f"{'='*60}")
+print(f"  Admin:  {total_admin:,} rows (8 groups)")
+print(f"  GRP-01: {total_grp01:,} rows (1 group)")
+print(f"  GRP-02: {total_grp02:,} rows (1 group)")
+print(f"  All assertions passed")
