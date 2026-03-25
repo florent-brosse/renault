@@ -251,12 +251,13 @@ print(f"\n{len(sp_credentials)} SPs ready")
 
 # COMMAND ----------
 
-# Connect to Postgres using workspace token as password
+# Generate Postgres credential for Autoscaling project
+pg_cred = w.postgres.generate_database_credential()
 email = w.current_user.me().user_name
 
 conn = psycopg2.connect(
     host=endpoint_host, port=5432, dbname="databricks_postgres",
-    user=email, password=workspace_token, sslmode="require"
+    user=email, password=pg_cred.token, sslmode="require"
 )
 conn.autocommit = True
 cur = conn.cursor()
