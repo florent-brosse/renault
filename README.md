@@ -119,6 +119,55 @@ renault/
 └── app/                              # Optional Databricks App for ref table CRUD
 ```
 
+## Teardown (delete everything)
+
+`databricks bundle destroy` removes DAB-managed resources but NOT synced table pipelines, service principals, or secret scopes. Full cleanup:
+
+```bash
+# 1. Destroy DAB resources (jobs, pipeline, warehouse, Lakebase project, workspace files)
+databricks bundle destroy --auto-approve
+
+# 2. Delete synced table pipelines (created by Lakebase setup, not DAB-managed)
+databricks api get "/api/2.0/pipelines?filter=name+LIKE+'%25synced%25car_sales%25'&max_results=10" --profile fevm \
+  | python3 -c "import sys,json; [print(p['pipeline_id']) for p in json.load(sys.stdin).get('statuses',[])]" \
+  | while read pid; do databricks api delete "/api/2.0/pipelines/$pid"; done
+
+# 3. Delete service principals
+for sp_name in "renault-groupe-bernard" "renault-groupe-gueudet"; do
+  sp_id=$(databricks service-principals list | grep "$sp_name" | awk '{print $1}')
+  [ -n "$sp_id" ] && databricks service-principals delete "$sp_id"
+done
+
+# 4. Delete secret scope
+databricks api post /api/2.0/secrets/scopes/delete --json '{"scope": "renault-demo"}'
+
+# 5. Drop UC schemas (if not already dropped by pipeline destroy)
+databricks api post /api/2.0/sql/statements --json '{
+  "warehouse_id": "<warehouse_id>",
+  "statement": "DROP SCHEMA IF EXISTS <catalog>.car_sales CASCADE",
+  "wait_timeout": "50s"
+}'
+databricks api post /api/2.0/sql/statements --json '{
+  "warehouse_id": "<warehouse_id>",
+  "statement": "DROP SCHEMA IF EXISTS <catalog>.landing CASCADE",
+  "wait_timeout": "50s"
+}'
+```
+
+## Cost tracking
+
+All resources are tagged with `project=renault-demo` and `customer=renault`.
+
+```sql
+-- Total cost
+SELECT sku_name, ROUND(SUM(usage_quantity), 2) AS dbus
+FROM system.billing.usage
+WHERE custom_tags['project'] = 'renault-demo'
+GROUP BY sku_name ORDER BY dbus DESC
+```
+
+See `cost/check_cost.py` for detailed breakdown.
+
 ## Synthetic data details
 
 - **50 concessions** across 10 French régions, assigned to 8 dealership groups
