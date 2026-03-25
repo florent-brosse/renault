@@ -80,18 +80,37 @@
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC -- Grand total (jobs + warehouse via tags, pipeline via ID)
+# MAGIC -- Lakebase cost (no custom tags — tracked by billing_origin_product)
 # MAGIC SELECT
-# MAGIC   ROUND(SUM(usage_quantity), 2) AS total_dbus,
-# MAGIC   ROUND(SUM(usage_quantity) * 0.07, 2) AS estimated_cost_usd,
-# MAGIC   COUNT(DISTINCT sku_name) AS num_skus,
-# MAGIC   MIN(usage_date) AS first_usage,
-# MAGIC   MAX(usage_date) AS last_usage
+# MAGIC   billing_origin_product,
+# MAGIC   sku_name,
+# MAGIC   ROUND(SUM(usage_quantity), 4) AS total_dbus,
+# MAGIC   ROUND(SUM(usage_quantity) * 0.07, 4) AS estimated_cost_usd
+# MAGIC FROM system.billing.usage
+# MAGIC WHERE billing_origin_product IN ('LAKEBASE', 'DATABASE')
+# MAGIC   AND usage_date >= CURRENT_DATE - INTERVAL 7 DAYS
+# MAGIC   AND workspace_id = current_workspace_id()
+# MAGIC GROUP BY ALL
+# MAGIC ORDER BY total_dbus DESC
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC -- Grand total (all sources combined)
+# MAGIC SELECT
+# MAGIC   billing_origin_product,
+# MAGIC   ROUND(SUM(usage_quantity), 4) AS total_dbus,
+# MAGIC   ROUND(SUM(usage_quantity) * 0.07, 4) AS estimated_cost_usd
 # MAGIC FROM system.billing.usage
 # MAGIC WHERE (
 # MAGIC   custom_tags['project'] = 'renault-demo'
 # MAGIC   OR usage_metadata.dlt_pipeline_id IN (
-# MAGIC     SELECT pipeline_id FROM system.lakeflow.pipelines WHERE name LIKE '%Renault%'
+# MAGIC     SELECT pipeline_id FROM system.lakeflow.pipelines
+# MAGIC     WHERE name LIKE '%Renault%' OR name LIKE '%synced%car_sales%'
 # MAGIC   )
+# MAGIC   OR billing_origin_product IN ('LAKEBASE', 'DATABASE')
 # MAGIC )
-# MAGIC AND usage_date >= '2025-10-01'
+# MAGIC AND usage_date >= CURRENT_DATE - INTERVAL 7 DAYS
+# MAGIC AND workspace_id = current_workspace_id()
+# MAGIC GROUP BY billing_origin_product
+# MAGIC ORDER BY total_dbus DESC
