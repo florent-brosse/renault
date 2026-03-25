@@ -251,14 +251,12 @@ print(f"\n{len(sp_credentials)} SPs ready")
 
 # COMMAND ----------
 
-# Get Postgres credentials via SDK
-import uuid
-pg_cred = w.database.generate_database_credential(request_id=str(uuid.uuid4()))
+# Connect to Postgres using workspace token as password
 email = w.current_user.me().user_name
 
 conn = psycopg2.connect(
     host=endpoint_host, port=5432, dbname="databricks_postgres",
-    user=email, password=pg_cred.token, sslmode="require"
+    user=email, password=workspace_token, sslmode="require"
 )
 conn.autocommit = True
 cur = conn.cursor()
