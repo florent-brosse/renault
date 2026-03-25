@@ -7,23 +7,38 @@ A complete car sales analytics demo showcasing how **1 Databricks workspace** re
 ```
   CSV Generators              Declarative Pipeline (DP)
  ┌─────────────────┐    ┌─────────────────────────────────────────────────────┐
- │ generate_history │───▶│  BRONZE            SILVER              GOLD        │
- │  2 yrs of CSVs  │    │  ┌──────────┐    ┌──────────────┐   ┌───────────┐ │
+ │ generate_history │───▶│  BRONZE            SILVER              GOLD (MVs) │
+ │  3 months CSVs   │    │  ┌──────────┐    ┌──────────────┐   ┌───────────┐ │
  │                  │    │  │Auto Loader│──▶ │Typed, cleaned│──▶│KPIs       │ │
  │ generate_daily   │───▶│  │cloudFiles │    │DQ validated  │   │Scorecards │ │
  │  1 new day CSVs  │    │  └──────────┘    └──────────────┘   │Model mix  │ │
  └─────────────────┘    └───────────────────────────────────┴───────────┘   │
                                                                  │          │
-  UC Volume              ┌─── RLS by concession group ──────────┤          │
-  (landing zone)         │                                       ▼          │
-                         │   AI/BI Dashboard + Genie Space  ◀───Gold       │
-                         │                                                  │
-                         │   Lakebase (Postgres REST API)   ◀──────────────┘
-                         │      ↕ sync back to Delta
-                         │   Databricks App (ref tables CRUD)
-                         │
-                         └─── BQ Federation (future) ───────── BigQuery
+  UC Volume                                                      ▼          │
+  (landing zone)      ┌── Dynamic Views (RLS) ──▶ Dashboards / Genie / DBSQL│
+                      │   v_listings_detail                                  │
+                      │   v_concession_daily_kpis                            │
+                      │   v_group_scorecard                                  │
+                      │                                                      │
+                      │── Synced Tables ──▶ Lakebase Postgres ──▶ Data API  │
+                      │   (no RLS on MVs)    (Postgres views for RLS)       │
+                      │                                                      │
+                      └── BQ Federation (future) ────────────── BigQuery    │
 ```
+
+### RLS Architecture (two layers)
+
+Gold MVs can't have both RLS and synced tables simultaneously. Workaround:
+
+```
+Gold MVs (no RLS) ──→ Synced tables → Postgres → Data API (Postgres views for RLS)
+       │
+       └──→ Dynamic views (WHERE rls_filter()) → Dashboards / Genie / DBSQL
+```
+
+- **DBSQL / Dashboards / Genie**: query `v_*` dynamic views with `WHERE rls_filter(group_id)`
+- **Data API (PostgREST)**: query Postgres views filtered by SP identity
+- **Gold MVs**: stay clean (no row filters) so synced tables work
 
 ## Features showcased
 
@@ -35,14 +50,12 @@ A complete car sales analytics demo showcasing how **1 Databricks workspace** re
 | Data Quality Expectations | Bronze + Silver layers |
 | Streaming Tables | Bronze + Silver |
 | Materialized Views | Gold layer with incremental maintenance |
-| Liquid Clustering | Gold tables |
-| Row-Level Security | Gold tables filtered by concession group |
+| Dynamic Views (RLS) | Row-level security by concession group |
 | AI/BI Dashboard | Sales monitoring (no extra license, SSO) |
 | AI/BI Genie | Natural language car sales analytics |
-| Lakebase | Postgres REST API for Gold + CRUD ref tables |
-| Lakebase ↔ Delta sync | Mirror tables both directions |
-| Databricks App (optional) | UI for managing reference tables |
-| BQ Federation (future) | Zero-copy query of BigQuery |
+| Lakebase (synced tables) | Delta → Postgres automatic sync |
+| Lakebase (Data API) | PostgREST REST API with Postgres RLS |
+| Cost tagging | All resources tagged `project=renault-demo` |
 | Databricks Asset Bundles | Infrastructure-as-code deployment |
 
 ## Data model
@@ -51,25 +64,28 @@ A complete car sales analytics demo showcasing how **1 Databricks workspace** re
 
 | Table | Rows | Key columns |
 |-------|------|-------------|
-| dim_concession | 50 | concession_id, concession_name, city, region, group_id, group_name |
+| dim_concession | ~42 | concession_id, concession_name, city, region, group_id |
 | dim_concession_group | 8 | group_id, group_name, regions |
 | dim_model | 30 | model_id, brand, model, version, segment |
-| dim_date | 731 | date_key, day_name, is_weekend, month, quarter, year |
+| dim_date | ~92 | date_key, day_name, is_weekend, month, quarter, year |
 
-### Facts
+### Gold layer (materialized views)
 
-| Table | Grain | Key columns |
-|-------|-------|-------------|
-| car_listings | concession × day × listing | listing_id, sale_date, concession_id, model_id, brand, model, version, year_immat, km, energy, etat, price, nb_photos |
-
-### Gold layer
-
-| Table | Grain | Purpose |
-|-------|-------|---------|
+| MV | Grain | Purpose |
+|----|-------|---------|
 | concession_daily_kpis | concession × day | Volume, revenue, avg price, energy mix |
 | model_performance | model × month | Model rankings, price trends, EV adoption |
 | group_scorecard | group × month | Group rankings by revenue, volume, EV share |
 | listings_detail | listing | Enriched listing-level for AI/BI + Genie |
+
+### Dynamic views (RLS)
+
+| View | Source MV | RLS |
+|------|-----------|-----|
+| v_concession_daily_kpis | concession_daily_kpis | `WHERE rls_filter(group_id)` |
+| v_group_scorecard | group_scorecard | `WHERE rls_filter(group_id)` |
+| v_listings_detail | listings_detail | `WHERE rls_filter(group_id)` |
+| v_model_performance | model_performance | pass-through (no group_id) |
 
 ### RLS groups
 
@@ -92,36 +108,55 @@ A complete car sales analytics demo showcasing how **1 Databricks workspace** re
 databricks bundle validate
 databricks bundle deploy
 
-# Initial setup: generate history + run pipeline + RLS + Lakebase
+# Initial setup: generate history + pipeline + RLS + Lakebase + Genie + Dashboard
 databricks bundle run renault_setup
 
 # During demo: generate one new day
 databricks bundle run renault_daily
 ```
 
+### Manual steps (one-time, after first deploy)
+
+1. **Enable Data API**: Lakebase UI → select `renault-lakebase` → Data API → Enable
+2. **Expose schema**: Data API → Advanced settings → add `car_sales`
+
+> Data API enablement via REST API coming ~April 2026 (`PATCH /api/2.0/postgres/.../data-api`)
+
+### Job DAG
+
+```
+generate_history → run_pipeline → setup_rls → create_genie_space
+                                            → deploy_dashboard
+                                → setup_lakebase (parallel, independent)
+```
+
 ## Project structure
 
 ```
 renault/
-├── databricks.yml                     # DAB configuration
+├── databricks.yml                     # DAB: pipeline, jobs, warehouse, Lakebase project
 ├── generators/
 │   ├── config.py                      # Shared constants & generation functions
-│   ├── generate_history.py            # Batch: 2 years of CSV files
+│   ├── generate_history.py            # Batch: 3 months of CSV files
 │   └── generate_daily.py             # Incremental: 1 new day of CSVs
 ├── pipeline/
 │   └── car_sales_pipeline.py         # Declarative Pipeline (Bronze + Silver + Gold)
 ├── rls/
-│   └── setup_rls.py                  # Row-Level Security by concession group
+│   └── setup_rls.py                  # Dynamic views with RLS + verification tests
 ├── lakebase/
-│   └── setup_lakebase.py            # Lakebase setup: mirrors + ref tables + sync
-├── dashboards/                        # AI/BI Lakeview dashboard queries
-├── genie/                            # Genie space provisioning
-└── app/                              # Optional Databricks App for ref table CRUD
+│   └── setup_lakebase.py            # Synced tables + SPs + Postgres views + Data API demo
+├── dashboards/
+│   ├── renault_car_sales_dashboard.json  # AI/BI Lakeview dashboard (4 pages, French)
+│   └── deploy_dashboard.py              # Deploy/update dashboard via API
+├── genie/
+│   └── create_genie_space.py        # Genie space with French instructions
+└── cost/
+    └── check_cost.py                # Cost analysis via system.billing.usage
 ```
 
 ## Teardown (delete everything)
 
-`databricks bundle destroy` removes DAB-managed resources but NOT synced table pipelines, service principals, or secret scopes. Full cleanup:
+`databricks bundle destroy` removes DAB-managed resources but NOT synced table pipelines, service principals, Genie spaces, or dashboards. Full cleanup:
 
 ```bash
 # 1. Destroy DAB resources (jobs, pipeline, warehouse, Lakebase project, workspace files)
@@ -137,20 +172,20 @@ databricks api get "/api/2.0/lakeview/dashboards" \
   | while read did; do databricks api delete "/api/2.0/lakeview/dashboards/$did"; done
 
 # 3. Delete synced table pipelines (created by Lakebase setup, not DAB-managed)
-databricks api get "/api/2.0/pipelines?filter=name+LIKE+'%25synced%25car_sales%25'&max_results=10" --profile fevm \
+databricks api get "/api/2.0/pipelines?filter=name+LIKE+'%25synced%25car_sales%25'&max_results=10" \
   | python3 -c "import sys,json; [print(p['pipeline_id']) for p in json.load(sys.stdin).get('statuses',[])]" \
   | while read pid; do databricks api delete "/api/2.0/pipelines/$pid"; done
 
-# 3. Delete service principals
+# 4. Delete service principals
 for sp_name in "renault-groupe-bernard" "renault-groupe-gueudet"; do
   sp_id=$(databricks service-principals list | grep "$sp_name" | awk '{print $1}')
   [ -n "$sp_id" ] && databricks service-principals delete "$sp_id"
 done
 
-# 4. Delete secret scope
+# 5. Delete secret scope
 databricks api post /api/2.0/secrets/scopes/delete --json '{"scope": "renault-demo"}'
 
-# 5. Drop UC schemas (if not already dropped by pipeline destroy)
+# 6. Drop UC schemas (if not already dropped by pipeline destroy)
 databricks api post /api/2.0/sql/statements --json '{
   "warehouse_id": "<warehouse_id>",
   "statement": "DROP SCHEMA IF EXISTS <catalog>.car_sales CASCADE",
@@ -168,10 +203,13 @@ databricks api post /api/2.0/sql/statements --json '{
 All resources are tagged with `project=renault-demo` and `customer=renault`.
 
 ```sql
--- Total cost
+-- Total cost (jobs + warehouse via tags, pipeline via ID)
 SELECT sku_name, ROUND(SUM(usage_quantity), 2) AS dbus
 FROM system.billing.usage
 WHERE custom_tags['project'] = 'renault-demo'
+   OR usage_metadata.dlt_pipeline_id IN (
+     SELECT pipeline_id FROM system.lakeflow.pipelines WHERE name LIKE '%Renault%'
+   )
 GROUP BY sku_name ORDER BY dbus DESC
 ```
 
@@ -179,7 +217,7 @@ See `cost/check_cost.py` for detailed breakdown.
 
 ## Synthetic data details
 
-- **50 concessions** across 10 French régions, assigned to 8 dealership groups
+- **~42 concessions** across 10 French regions, assigned to 8 dealership groups
 - **30 car models**: Renault (17), Dacia (6), Alpine (2), older models (5)
 - **Segments**: A, B, C, D, SUV, EV, VU, Sport, Ludospace
 - **Seasonality**: January +30% (new year), September +25% (rentrée), August -50%
@@ -187,3 +225,13 @@ See `cost/check_cost.py` for detailed breakdown.
 - **Pricing**: Realistic depreciation curve (80% at 1yr, down to 20% at 10yr+)
 - **Vehicle condition**: Correlated to age (newer = better condition)
 - **Energy mix**: Essence 35%, Diesel 25%, Hybride 25%, GPL 5%, EV for electric models
+
+## Known limitations
+
+| Limitation | Workaround |
+|------------|------------|
+| RLS + synced tables can't coexist on same MV | Dynamic views for DBSQL/BI, Postgres views for Data API |
+| Data API enablement is UI-only | API coming ~April 2026 |
+| `bundle destroy` doesn't clean synced pipelines/SPs/Genie | See teardown section |
+| ABAC `CREATE POLICY` also blocks synced tables | Use dynamic views instead |
+| Governed tags creation is UI or API, not SQL | `POST /api/2.0/tag-policies` |
