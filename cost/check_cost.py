@@ -89,7 +89,7 @@
 # MAGIC FROM system.billing.usage
 # MAGIC WHERE billing_origin_product IN ('LAKEBASE', 'DATABASE')
 # MAGIC   AND usage_date >= CURRENT_DATE - INTERVAL 7 DAYS
-# MAGIC   # MAGIC GROUP BY ALL
+# MAGIC # MAGIC GROUP BY ALL
 # MAGIC ORDER BY total_dbus DESC
 
 # COMMAND ----------
@@ -110,5 +110,5 @@
 # MAGIC   OR billing_origin_product IN ('LAKEBASE', 'DATABASE')
 # MAGIC )
 # MAGIC AND usage_date >= CURRENT_DATE - INTERVAL 7 DAYS
-# MAGIC # MAGIC GROUP BY billing_origin_product
+# MAGIC GROUP BY billing_origin_product
 # MAGIC ORDER BY total_dbus DESC
