@@ -321,7 +321,7 @@ for sp in sp_credentials:
     print(f"Postgres role ready: {sp['name']} ({sp['app_id'][:12]}...)")
 
 # Create group mapping table (SP app_id → group_id)
-cur.execute("DROP TABLE IF EXISTS car_sales.sp_group_mapping")
+cur.execute("DROP TABLE IF EXISTS car_sales.sp_group_mapping CASCADE")
 cur.execute("""
     CREATE TABLE car_sales.sp_group_mapping (
         sp_role TEXT PRIMARY KEY,
