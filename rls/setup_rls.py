@@ -165,14 +165,12 @@ if not abac_success:
     """)
     print("Row filter UDF created")
 
-    # Apply to Gold tables
+    # Apply to Gold materialized views
+    # Gold tables from DP are materialized views — must use ALTER MATERIALIZED VIEW, not ALTER TABLE
     for table in gold_tables_with_rls:
         fqn = f"{CATALOG}.{SCHEMA_CAR_SALES}.{table}"
-        try:
-            spark.sql(f"ALTER TABLE {fqn} SET ROW FILTER {CATALOG}.{SCHEMA_CAR_SALES}.rls_filter ON (group_id)")
-            print(f"Row filter applied to {fqn}")
-        except Exception as e:
-            print(f"  {fqn}: {e}")
+        spark.sql(f"ALTER MATERIALIZED VIEW {fqn} SET ROW FILTER {CATALOG}.{SCHEMA_CAR_SALES}.rls_filter ON (group_id)")
+        print(f"Row filter applied to {fqn}")
 
     # Add current user as admin so they can see all data
     current_user = spark.sql("SELECT current_user()").collect()[0][0]
