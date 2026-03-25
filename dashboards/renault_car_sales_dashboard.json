@@ -11,7 +11,7 @@
         "  ROUND(SUM(nb_electrique) * 100.0 / NULLIF(SUM(nb_listings), 0), 1) AS part_ev_pct, ",
         "  SUM(nb_neuf) AS total_neuf, ",
         "  SUM(nb_occasion) AS total_occasion ",
-        "FROM serverless_stable_le1wzb_catalog.car_sales.concession_daily_kpis"
+        "FROM serverless_stable_le1wzb_catalog.car_sales.v_concession_daily_kpis"
       ]
     },
     {
@@ -22,7 +22,7 @@
         "  DATE_TRUNC('MONTH', sale_date) AS mois, ",
         "  SUM(total_revenue) AS chiffre_affaires, ",
         "  SUM(nb_listings) AS nb_annonces ",
-        "FROM serverless_stable_le1wzb_catalog.car_sales.concession_daily_kpis ",
+        "FROM serverless_stable_le1wzb_catalog.car_sales.v_concession_daily_kpis ",
         "GROUP BY DATE_TRUNC('MONTH', sale_date) ",
         "ORDER BY mois"
       ]
@@ -35,7 +35,7 @@
         "  region, ",
         "  SUM(nb_listings) AS nb_annonces, ",
         "  SUM(total_revenue) AS chiffre_affaires ",
-        "FROM serverless_stable_le1wzb_catalog.car_sales.concession_daily_kpis ",
+        "FROM serverless_stable_le1wzb_catalog.car_sales.v_concession_daily_kpis ",
         "GROUP BY region ",
         "ORDER BY nb_annonces DESC"
       ]
@@ -45,11 +45,11 @@
       "displayName": "Mix énergie",
       "queryLines": [
         "SELECT ",
-        "  'Électrique' AS energie, SUM(nb_electrique) AS nb FROM serverless_stable_le1wzb_catalog.car_sales.concession_daily_kpis ",
+        "  'Électrique' AS energie, SUM(nb_electrique) AS nb FROM serverless_stable_le1wzb_catalog.car_sales.v_concession_daily_kpis ",
         "UNION ALL ",
-        "SELECT 'Hybride', SUM(nb_hybride) FROM serverless_stable_le1wzb_catalog.car_sales.concession_daily_kpis ",
+        "SELECT 'Hybride', SUM(nb_hybride) FROM serverless_stable_le1wzb_catalog.car_sales.v_concession_daily_kpis ",
         "UNION ALL ",
-        "SELECT 'Thermique', SUM(nb_thermique) FROM serverless_stable_le1wzb_catalog.car_sales.concession_daily_kpis"
+        "SELECT 'Thermique', SUM(nb_thermique) FROM serverless_stable_le1wzb_catalog.car_sales.v_concession_daily_kpis"
       ]
     },
     {
@@ -64,7 +64,7 @@
         "  ROUND(SUM(nb_ev) * 100.0 / NULLIF(SUM(nb_listings), 0), 1) AS part_ev_pct, ",
         "  ROUND(SUM(nb_listings * neuf_share_pct) / NULLIF(SUM(nb_listings), 0), 1) AS part_neuf_pct, ",
         "  MAX(nb_concessions) AS nb_concessions ",
-        "FROM serverless_stable_le1wzb_catalog.car_sales.group_scorecard ",
+        "FROM serverless_stable_le1wzb_catalog.car_sales.v_group_scorecard ",
         "GROUP BY group_name ",
         "ORDER BY chiffre_affaires DESC"
       ]
@@ -77,7 +77,7 @@
         "  DATE_TRUNC('WEEK', sale_date) AS semaine, ",
         "  group_name, ",
         "  SUM(total_revenue) AS chiffre_affaires ",
-        "FROM serverless_stable_le1wzb_catalog.car_sales.concession_daily_kpis ",
+        "FROM serverless_stable_le1wzb_catalog.car_sales.v_concession_daily_kpis ",
         "GROUP BY DATE_TRUNC('WEEK', sale_date), group_name ",
         "ORDER BY semaine"
       ]
@@ -91,7 +91,7 @@
         "  region, ",
         "  group_name, ",
         "  SUM(total_revenue) AS chiffre_affaires ",
-        "FROM serverless_stable_le1wzb_catalog.car_sales.concession_daily_kpis ",
+        "FROM serverless_stable_le1wzb_catalog.car_sales.v_concession_daily_kpis ",
         "GROUP BY concession_name, region, group_name ",
         "ORDER BY chiffre_affaires DESC ",
         "LIMIT 10"
@@ -111,7 +111,7 @@
         "  ROUND(SUM(total_revenue) / NULLIF(SUM(nb_listings), 0), 0) AS prix_moyen, ",
         "  SUM(nb_electrique) AS nb_ev, ",
         "  SUM(nb_hybride) AS nb_hybride ",
-        "FROM serverless_stable_le1wzb_catalog.car_sales.model_performance ",
+        "FROM serverless_stable_le1wzb_catalog.car_sales.v_model_performance ",
         "GROUP BY brand, model, version, segment ",
         "ORDER BY chiffre_affaires DESC"
       ]
@@ -123,7 +123,7 @@
         "SELECT ",
         "  brand AS marque, ",
         "  SUM(nb_listings) AS nb_annonces ",
-        "FROM serverless_stable_le1wzb_catalog.car_sales.model_performance ",
+        "FROM serverless_stable_le1wzb_catalog.car_sales.v_model_performance ",
         "GROUP BY brand ",
         "ORDER BY nb_annonces DESC"
       ]
@@ -135,7 +135,7 @@
         "SELECT ",
         "  segment, ",
         "  SUM(total_revenue) AS chiffre_affaires ",
-        "FROM serverless_stable_le1wzb_catalog.car_sales.model_performance ",
+        "FROM serverless_stable_le1wzb_catalog.car_sales.v_model_performance ",
         "GROUP BY segment ",
         "ORDER BY chiffre_affaires DESC"
       ]
@@ -147,15 +147,15 @@
         "SELECT mois, energie, nb FROM ( ",
         "  SELECT CONCAT(year, '-', LPAD(month, 2, '0')) AS mois, ",
         "    'Électrique' AS energie, SUM(nb_electrique) AS nb ",
-        "  FROM serverless_stable_le1wzb_catalog.car_sales.model_performance GROUP BY year, month ",
+        "  FROM serverless_stable_le1wzb_catalog.car_sales.v_model_performance GROUP BY year, month ",
         "  UNION ALL ",
         "  SELECT CONCAT(year, '-', LPAD(month, 2, '0')), ",
         "    'Hybride', SUM(nb_hybride) ",
-        "  FROM serverless_stable_le1wzb_catalog.car_sales.model_performance GROUP BY year, month ",
+        "  FROM serverless_stable_le1wzb_catalog.car_sales.v_model_performance GROUP BY year, month ",
         "  UNION ALL ",
         "  SELECT CONCAT(year, '-', LPAD(month, 2, '0')), ",
         "    'Thermique', SUM(nb_listings) - SUM(nb_electrique) - SUM(nb_hybride) ",
-        "  FROM serverless_stable_le1wzb_catalog.car_sales.model_performance GROUP BY year, month ",
+        "  FROM serverless_stable_le1wzb_catalog.car_sales.v_model_performance GROUP BY year, month ",
         ") ORDER BY mois, energie"
       ]
     },
@@ -180,7 +180,7 @@
         "  etat, ",
         "  price AS prix, ",
         "  nb_photos ",
-        "FROM serverless_stable_le1wzb_catalog.car_sales.listings_detail ",
+        "FROM serverless_stable_le1wzb_catalog.car_sales.v_listings_detail ",
         "ORDER BY sale_date DESC ",
         "LIMIT 5000"
       ]

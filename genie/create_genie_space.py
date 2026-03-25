@@ -59,7 +59,7 @@ serialized_space = {
     "data_sources": {
         "tables": [
             {
-                "identifier": f"{CATALOG}.{SCHEMA}.listings_detail",
+                "identifier": f"{CATALOG}.{SCHEMA}.v_listings_detail",
                 "description": [
                     "Détail de chaque annonce de véhicule avec toutes les dimensions jointes. ",
                     "Une ligne par véhicule listé. Contient : concession, groupe, marque, modèle, version, ",
@@ -78,7 +78,7 @@ serialized_space = {
                 ]
             },
             {
-                "identifier": f"{CATALOG}.{SCHEMA}.concession_daily_kpis",
+                "identifier": f"{CATALOG}.{SCHEMA}.v_concession_daily_kpis",
                 "description": [
                     "KPIs agrégés par concession et par jour. ",
                     "Une ligne par concession x jour ouvert. Contient : nombre d'annonces, CA, prix moyen, ",
@@ -92,7 +92,7 @@ serialized_space = {
                 ]
             },
             {
-                "identifier": f"{CATALOG}.{SCHEMA}.group_scorecard",
+                "identifier": f"{CATALOG}.{SCHEMA}.v_group_scorecard",
                 "description": [
                     "Scorecard par groupe de concessions et par mois. ",
                     "Contient : classement par CA, volume, part EV. ",
@@ -103,7 +103,7 @@ serialized_space = {
                 ]
             },
             {
-                "identifier": f"{CATALOG}.{SCHEMA}.model_performance",
+                "identifier": f"{CATALOG}.{SCHEMA}.v_model_performance",
                 "description": [
                     "Performance par modèle et par mois. ",
                     "Une ligne par marque x modèle x version x mois. ",
@@ -148,7 +148,7 @@ serialized_space = {
                     f"  SUM(total_revenue) AS ca, ",
                     f"  SUM(nb_listings) AS nb_annonces, ",
                     f"  ROUND(SUM(total_revenue) / NULLIF(SUM(nb_listings), 0), 0) AS prix_moyen ",
-                    f"FROM {CATALOG}.{SCHEMA}.concession_daily_kpis ",
+                    f"FROM {CATALOG}.{SCHEMA}.v_concession_daily_kpis ",
                     f"GROUP BY concession_name, region, group_name ",
                     f"ORDER BY ca DESC LIMIT 10"
                 ]
@@ -161,7 +161,7 @@ serialized_space = {
                     f"  SUM(nb_listings) AS total, ",
                     f"  SUM(nb_ev) AS nb_ev, ",
                     f"  ROUND(SUM(nb_ev) * 100.0 / NULLIF(SUM(nb_listings), 0), 1) AS part_ev_pct ",
-                    f"FROM {CATALOG}.{SCHEMA}.group_scorecard ",
+                    f"FROM {CATALOG}.{SCHEMA}.v_group_scorecard ",
                     f"GROUP BY group_name ",
                     f"ORDER BY part_ev_pct DESC"
                 ]
@@ -174,7 +174,7 @@ serialized_space = {
                     f"  SUM(nb_listings) AS nb_annonces, ",
                     f"  SUM(total_revenue) AS ca, ",
                     f"  ROUND(AVG(avg_price), 0) AS prix_moyen ",
-                    f"FROM {CATALOG}.{SCHEMA}.model_performance ",
+                    f"FROM {CATALOG}.{SCHEMA}.v_model_performance ",
                     f"GROUP BY brand, model, version, segment ",
                     f"ORDER BY nb_annonces DESC LIMIT 10"
                 ]
@@ -187,7 +187,7 @@ serialized_space = {
                     f"  COUNT(*) AS nb, ",
                     f"  ROUND(AVG(price), 0) AS prix_moyen, ",
                     f"  ROUND(AVG(km), 0) AS km_moyen ",
-                    f"FROM {CATALOG}.{SCHEMA}.listings_detail ",
+                    f"FROM {CATALOG}.{SCHEMA}.v_listings_detail ",
                     f"WHERE model = 'Clio' AND etat != 'Neuf' ",
                     f"GROUP BY year_immat ",
                     f"ORDER BY year_immat DESC"
@@ -201,7 +201,7 @@ serialized_space = {
                     f"  SUM(nb_electrique) AS nb_ev, ",
                     f"  SUM(nb_listings) AS total, ",
                     f"  ROUND(SUM(nb_electrique) * 100.0 / NULLIF(SUM(nb_listings), 0), 1) AS part_ev_pct ",
-                    f"FROM {CATALOG}.{SCHEMA}.concession_daily_kpis ",
+                    f"FROM {CATALOG}.{SCHEMA}.v_concession_daily_kpis ",
                     f"GROUP BY year, month ",
                     f"ORDER BY year, month"
                 ]
@@ -229,7 +229,7 @@ serialized_space = {
                 "answer": [{"format": "SQL", "content": [
                     f"SELECT group_name, ",
                     f"  ROUND(SUM(nb_ev) * 100.0 / NULLIF(SUM(nb_listings), 0), 1) AS part_ev_pct ",
-                    f"FROM {CATALOG}.{SCHEMA}.group_scorecard ",
+                    f"FROM {CATALOG}.{SCHEMA}.v_group_scorecard ",
                     f"GROUP BY group_name ",
                     f"ORDER BY part_ev_pct DESC LIMIT 1"
                 ]}]
@@ -239,7 +239,7 @@ serialized_space = {
                 "question": ["Top 3 modèles par CA"],
                 "answer": [{"format": "SQL", "content": [
                     f"SELECT brand, model, version, SUM(total_revenue) AS ca ",
-                    f"FROM {CATALOG}.{SCHEMA}.model_performance ",
+                    f"FROM {CATALOG}.{SCHEMA}.v_model_performance ",
                     f"GROUP BY brand, model, version ",
                     f"ORDER BY ca DESC LIMIT 3"
                 ]}]
