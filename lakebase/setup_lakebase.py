@@ -278,6 +278,28 @@ for sp_cfg in SP_CONFIGS:
 
 print(f"\n{len(sp_credentials)} SPs ready")
 
+# Also insert SPs into the UC user_group_mapping table (used by dynamic views for RLS)
+# This table is created by setup_rls, but we create it here if it doesn't exist
+# so the same SPs are used for both UC RLS and Postgres RLS
+spark.sql(f"""
+CREATE TABLE IF NOT EXISTS {CATALOG}.car_sales.user_group_mapping (
+  user_or_group STRING,
+  group_id STRING,
+  group_name STRING,
+  is_admin BOOLEAN
+) USING DELTA
+""")
+
+for sp in sp_credentials:
+    spark.sql(f"""
+    MERGE INTO {CATALOG}.car_sales.user_group_mapping t
+    USING (SELECT '{sp["app_id"]}' AS user_or_group, '{sp["group_id"]}' AS group_id, '{sp["label"]}' AS group_name, FALSE AS is_admin) s
+    ON t.user_or_group = s.user_or_group
+    WHEN MATCHED THEN UPDATE SET *
+    WHEN NOT MATCHED THEN INSERT *
+    """)
+print(f"SPs added to UC user_group_mapping (for dynamic views RLS)")
+
 # COMMAND ----------
 
 # MAGIC %md

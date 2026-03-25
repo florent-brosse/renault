@@ -30,6 +30,7 @@
 
 spark.sql(f"CREATE SCHEMA IF NOT EXISTS {CATALOG}.{SCHEMA_CAR_SALES}")
 
+# Create mapping table if not exists (Lakebase may have already created it with SP entries)
 spark.sql(f"""
 CREATE TABLE IF NOT EXISTS {CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping (
   user_or_group STRING,
@@ -39,7 +40,8 @@ CREATE TABLE IF NOT EXISTS {CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping (
 ) USING DELTA
 """)
 
-sample_mappings = [
+# MERGE IdP group mappings (preserves SPs inserted by Lakebase)
+idp_mappings = [
     ("admin@renault.com", None, None, True),
     ("groupe_bernard", "GRP-01", "Groupe Bernard", False),
     ("groupe_gueudet", "GRP-02", "Groupe Gueudet", False),
@@ -51,14 +53,29 @@ sample_mappings = [
     ("groupe_claro", "GRP-08", "Groupe Claro", False),
 ]
 
-df = spark.createDataFrame(sample_mappings, ["user_or_group", "group_id", "group_name", "is_admin"])
-df.write.mode("overwrite").option("overwriteSchema", "true").saveAsTable(f"{CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping")
+for user, gid, gname, is_admin in idp_mappings:
+    gid_sql = f"'{gid}'" if gid else "NULL"
+    gname_sql = f"'{gname}'" if gname else "NULL"
+    spark.sql(f"""
+    MERGE INTO {CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping t
+    USING (SELECT '{user}' AS user_or_group, {gid_sql} AS group_id, {gname_sql} AS group_name, {is_admin} AS is_admin) s
+    ON t.user_or_group = s.user_or_group
+    WHEN MATCHED THEN UPDATE SET *
+    WHEN NOT MATCHED THEN INSERT *
+    """)
 
 # Add current user as admin
 current_user = spark.sql("SELECT current_user()").collect()[0][0]
-spark.sql(f"INSERT INTO {CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping VALUES ('{current_user}', NULL, NULL, TRUE)")
+spark.sql(f"""
+MERGE INTO {CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping t
+USING (SELECT '{current_user}' AS user_or_group, CAST(NULL AS STRING) AS group_id, CAST(NULL AS STRING) AS group_name, TRUE AS is_admin) s
+ON t.user_or_group = s.user_or_group
+WHEN MATCHED THEN UPDATE SET *
+WHEN NOT MATCHED THEN INSERT *
+""")
 
-print(f"Mapping table: {len(sample_mappings) + 1} entries (including {current_user} as admin)")
+total = spark.sql(f"SELECT count(*) FROM {CATALOG}.{SCHEMA_CAR_SALES}.user_group_mapping").collect()[0][0]
+print(f"Mapping table: {total} entries (IdP groups + SPs + admin)")
 
 # COMMAND ----------
 
