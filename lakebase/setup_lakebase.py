@@ -85,6 +85,19 @@ for p in projects:
 
 assert project_uid, f"Lakebase project '{LAKEBASE_PROJECT}' not found. Run 'databricks bundle deploy' first."
 
+# Wait for branch to be READY
+print("Waiting for Lakebase branch to be READY...")
+for attempt in range(30):
+    branches_resp = requests.get(f"{workspace_url}/api/2.0/postgres/projects/{LAKEBASE_PROJECT}/branches", headers=headers)
+    branches_resp.raise_for_status()
+    branches = branches_resp.json() if isinstance(branches_resp.json(), list) else branches_resp.json().get("branches", [])
+    if branches and branches[0].get("status", {}).get("current_state") == "READY":
+        print(f"  Branch ready: {branches[0]['uid']}")
+        break
+    time.sleep(10)
+else:
+    raise Exception(f"Lakebase branch not ready after 5 min")
+
 branches_resp = requests.get(f"{workspace_url}/api/2.0/postgres/projects/{LAKEBASE_PROJECT}/branches", headers=headers)
 branches_resp.raise_for_status()
 branches = branches_resp.json() if isinstance(branches_resp.json(), list) else branches_resp.json().get("branches", [])
