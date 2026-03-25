@@ -85,6 +85,19 @@ for p in projects:
 
 assert project_uid, f"Lakebase project '{LAKEBASE_PROJECT}' not found. Run 'databricks bundle deploy' first."
 
+# Tag the Lakebase project for cost tracking
+tag_resp = requests.patch(
+    f"{workspace_url}/api/2.0/postgres/projects/{LAKEBASE_PROJECT}",
+    headers=headers,
+    params={"update_mask": "spec.custom_tags"},
+    json={"spec": {"custom_tags": [
+        {"key": "project", "value": "renault-demo"},
+        {"key": "customer", "value": "renault"}
+    ]}}
+)
+tag_resp.raise_for_status()
+print("Lakebase project tagged: project=renault-demo, customer=renault")
+
 # Wait for branch to be READY
 print("Waiting for Lakebase branch to be READY...")
 for attempt in range(30):
