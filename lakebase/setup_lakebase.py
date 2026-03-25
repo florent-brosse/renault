@@ -141,8 +141,11 @@ for cfg in SYNC_CONFIG:
             },
         },
     )
-    resp.raise_for_status()
-    print(f"Created: {dest}")
+    if resp.status_code == 409:
+        print(f"Already registered: {dest} (409 conflict)")
+    else:
+        resp.raise_for_status()
+        print(f"Created: {dest}")
 
 # COMMAND ----------
 
