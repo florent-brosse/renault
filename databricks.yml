@@ -103,6 +103,7 @@ resources:
             source: WORKSPACE
             base_parameters:
               catalog: ${var.catalog}
+              budget_policy_id: ${var.budget_policy_id}
           environment_key: default
 
         - task_key: setup_rls

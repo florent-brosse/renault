@@ -7,8 +7,16 @@
 
 # COMMAND ----------
 
+# MAGIC %pip install --upgrade databricks-sdk --quiet
+
+# COMMAND ----------
+
+dbutils.library.restartPython()
+
+# COMMAND ----------
+
 import json
-import requests
+from databricks.sdk import WorkspaceClient
 
 # Get catalog from widget
 try:
@@ -25,14 +33,7 @@ with open("/Workspace" + dbutils.notebook.entry_point.getDbutils().notebook().ge
 raw = raw.replace("serverless_stable_le1wzb_catalog", CATALOG).replace("renault_demo", CATALOG)
 dashboard_def = json.loads(raw)
 
-# Get workspace URL and token
-host = spark.conf.get("spark.databricks.workspaceUrl", "")
-token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
-
-if not host.startswith("https://"):
-    host = f"https://{host}"
-
-headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+w = WorkspaceClient()
 
 # COMMAND ----------
 
@@ -42,39 +43,34 @@ headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json
 # COMMAND ----------
 
 # Get current user for parent_path
-current_user = spark.sql("SELECT current_user()").collect()[0][0]
+current_user = w.current_user.me().user_name
 
 DASHBOARD_NAME = "Renault - Ventes Automobiles"
 
 # Check if dashboard already exists
-existing = requests.get(f"{host}/api/2.0/lakeview/dashboards", headers=headers).json()
 dashboard_id = None
-for d in existing.get("dashboards", []):
-    if d.get("display_name") == DASHBOARD_NAME:
-        dashboard_id = d["dashboard_id"]
+for d in w.lakeview.list():
+    if d.display_name == DASHBOARD_NAME:
+        dashboard_id = d.dashboard_id
         break
 
 serialized = json.dumps(dashboard_def)
 
 if dashboard_id:
     # Update existing
-    resp = requests.patch(f"{host}/api/2.0/lakeview/dashboards/{dashboard_id}", headers=headers,
-                          json={"serialized_dashboard": serialized})
-    if resp.status_code == 200:
-        print(f"Dashboard updated: {dashboard_id}")
-    else:
-        print(f"Update error {resp.status_code}: {resp.text}")
+    w.lakeview.update(dashboard_id=dashboard_id, serialized_dashboard=serialized)
+    print(f"Dashboard updated: {dashboard_id}")
 else:
     # Create new
-    resp = requests.post(f"{host}/api/2.0/lakeview/dashboards", headers=headers,
-                         json={"display_name": DASHBOARD_NAME, "parent_path": f"/Users/{current_user}",
-                               "serialized_dashboard": serialized})
-    if resp.status_code == 200:
-        dashboard_id = resp.json()["dashboard_id"]
-        print(f"Dashboard created: {dashboard_id}")
-    else:
-        print(f"Create error {resp.status_code}: {resp.text}")
+    result = w.lakeview.create(
+        display_name=DASHBOARD_NAME,
+        parent_path=f"/Users/{current_user}",
+        serialized_dashboard=serialized,
+    )
+    dashboard_id = result.dashboard_id
+    print(f"Dashboard created: {dashboard_id}")
 
+host = w.config.host.rstrip("/")
 print(f"URL: {host}/sql/dashboardsv3/{dashboard_id}")
 
 # COMMAND ----------
@@ -85,10 +81,7 @@ print(f"URL: {host}/sql/dashboardsv3/{dashboard_id}")
 # COMMAND ----------
 
 try:
-    pub_resp = requests.post(f"{host}/api/2.0/lakeview/dashboards/{dashboard_id}/published", headers=headers, json={})
-    if pub_resp.status_code == 200:
-        print(f"Dashboard published successfully")
-    else:
-        print(f"Publish warning: {pub_resp.status_code} - {pub_resp.text}")
+    w.lakeview.publish(dashboard_id=dashboard_id)
+    print("Dashboard published successfully")
 except Exception as e:
     print(f"Could not publish (OK for draft): {e}")

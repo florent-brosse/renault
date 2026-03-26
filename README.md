@@ -102,6 +102,18 @@ Gold MVs (no RLS) ──→ Synced tables → Postgres → Data API (Postgres vi
 
 ## Quick start
 
+### Prerequisites
+
+1. **Create a budget policy** in the workspace UI (Settings → Compute → Budget Policies)
+   - Add a custom tag: `project = <your-policy-name>`
+   - Copy the policy ID (UUID from the URL)
+2. **Set the policy ID** in `databricks.yml`:
+   ```yaml
+   variables:
+     budget_policy_id:
+       default: <your-policy-id>
+   ```
+
 ### Deploy with Databricks Asset Bundles
 
 ```bash

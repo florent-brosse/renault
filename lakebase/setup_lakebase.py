@@ -44,14 +44,16 @@ dbutils.library.restartPython()
 import json, time, requests, psycopg2
 import pandas as pd
 from databricks.sdk import WorkspaceClient
+from databricks.sdk.service.database import SyncedTableSpec, SyncedTableSchedulingPolicy
 
 w = WorkspaceClient()
 workspace_url = w.config.host.rstrip("/")
 workspace_id = dbutils.notebook.entry_point.getDbutils().notebook().getContext().workspaceId().get()
-workspace_token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
-headers = {"Authorization": f"Bearer {workspace_token}"}
 
 LAKEBASE_PROJECT = "renault-lakebase"
+dbutils.widgets.text("budget_policy_id", "", "Budget Policy ID")
+BUDGET_POLICY_ID = dbutils.widgets.get("budget_policy_id")
+assert BUDGET_POLICY_ID, "budget_policy_id parameter is required"
 
 # COMMAND ----------
 
@@ -73,55 +75,46 @@ print("Skipping CDF — Gold tables are materialized views, using SNAPSHOT sync 
 
 # COMMAND ----------
 
-projects_resp = requests.get(f"{workspace_url}/api/2.0/postgres/projects", headers=headers)
-projects_resp.raise_for_status()
-projects = projects_resp.json() if isinstance(projects_resp.json(), list) else projects_resp.json().get("projects", [])
-
+projects = list(w.postgres.list_projects())
 project_uid = None
 for p in projects:
-    if LAKEBASE_PROJECT in p.get("name", ""):
-        project_uid = p["uid"]
+    if LAKEBASE_PROJECT in p.name:
+        project_uid = p.uid
         break
 
 assert project_uid, f"Lakebase project '{LAKEBASE_PROJECT}' not found. Run 'databricks bundle deploy' first."
 
 # Tag the Lakebase project for cost tracking
-tag_resp = requests.patch(
+token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
+requests.patch(
     f"{workspace_url}/api/2.0/postgres/projects/{LAKEBASE_PROJECT}",
-    headers=headers,
+    headers={"Authorization": f"Bearer {token}"},
     params={"update_mask": "spec.custom_tags"},
     json={"spec": {"custom_tags": [
         {"key": "project", "value": "renault-demo"},
         {"key": "customer", "value": "renault"}
     ]}}
-)
-tag_resp.raise_for_status()
+).raise_for_status()
 print("Lakebase project tagged: project=renault-demo, customer=renault")
 
 # Wait for branch to be READY
 print("Waiting for Lakebase branch to be READY...")
 for attempt in range(30):
-    branches_resp = requests.get(f"{workspace_url}/api/2.0/postgres/projects/{LAKEBASE_PROJECT}/branches", headers=headers)
-    branches_resp.raise_for_status()
-    branches = branches_resp.json() if isinstance(branches_resp.json(), list) else branches_resp.json().get("branches", [])
-    if branches and branches[0].get("status", {}).get("current_state") == "READY":
-        print(f"  Branch ready: {branches[0]['uid']}")
+    branches = list(w.postgres.list_branches(parent=f"projects/{LAKEBASE_PROJECT}"))
+    if branches and branches[0].status.current_state.value == "READY":
+        print(f"  Branch ready: {branches[0].uid}")
         break
     time.sleep(10)
 else:
-    raise Exception(f"Lakebase branch not ready after 5 min")
+    raise Exception("Lakebase branch not ready after 5 min")
 
-branches_resp = requests.get(f"{workspace_url}/api/2.0/postgres/projects/{LAKEBASE_PROJECT}/branches", headers=headers)
-branches_resp.raise_for_status()
-branches = branches_resp.json() if isinstance(branches_resp.json(), list) else branches_resp.json().get("branches", [])
-branch_uid = branches[0]["uid"]
-branch_name = branches[0]["name"].split("/")[-1]
+branch = branches[0]
+branch_uid = branch.uid
+branch_name = branch.name.split("/")[-1]
 
-endpoints_resp = requests.get(f"{workspace_url}/api/2.0/postgres/projects/{LAKEBASE_PROJECT}/branches/{branch_name}/endpoints", headers=headers)
-endpoints_resp.raise_for_status()
-endpoints_data = endpoints_resp.json() if isinstance(endpoints_resp.json(), list) else endpoints_resp.json().get("endpoints", [])
-endpoint_host = endpoints_data[0]["status"]["hosts"]["host"]
-endpoint_name = endpoints_data[0]["name"].split("/")[-1]
+endpoints = list(w.postgres.list_endpoints(parent=f"projects/{LAKEBASE_PROJECT}/branches/{branch_name}"))
+endpoint_host = endpoints[0].status.hosts.host
+endpoint_name = endpoints[0].name.split("/")[-1]
 
 print(f"Project UID: {project_uid}")
 print(f"Branch: {branch_uid} ({branch_name})")
@@ -146,34 +139,33 @@ for cfg in SYNC_CONFIG:
     dest = f"{CATALOG}.car_sales.{cfg['table']}_synced"
 
     # Skip if already exists
-    check = requests.get(f"{workspace_url}/api/2.0/database/synced_tables/{dest}", headers=headers)
-    if check.status_code == 200:
-        state = check.json().get("data_synchronization_status", {}).get("detailed_state", "?")
+    try:
+        existing = w.database.get_synced_database_table(name=dest)
+        state = existing.data_synchronization_status.detailed_state.value if existing.data_synchronization_status else "?"
         print(f"Already exists: {dest} ({state})")
         continue
+    except Exception:
+        pass
 
-    resp = requests.post(
-        f"{workspace_url}/api/2.0/database/synced_tables",
-        headers=headers,
-        json={
-            "name": dest,
-            "database_project_id": project_uid,
-            "database_branch_id": branch_uid,
-            "logical_database_name": "databricks_postgres",
-            "spec": {
-                "source_table_full_name": source,
-                "primary_key_columns": cfg["pk"],
-                "scheduling_policy": "SNAPSHOT",
-            },
-        },
-    )
-    if resp.status_code == 409:
-        print(f"Already registered: {dest} (409 conflict)")
-    elif not resp.ok:
-        print(f"ERROR creating {dest}: {resp.status_code} {resp.text}")
-        resp.raise_for_status()
-    else:
+    try:
+        w.database.create_synced_database_table(
+            name=dest,
+            database_project_id=project_uid,
+            database_branch_id=branch_uid,
+            logical_database_name="databricks_postgres",
+            spec=SyncedTableSpec(
+                source_table_full_name=source,
+                primary_key_columns=cfg["pk"],
+                scheduling_policy=SyncedTableSchedulingPolicy.SNAPSHOT,
+            ),
+        )
         print(f"Created: {dest}")
+    except Exception as e:
+        if "409" in str(e) or "already exists" in str(e).lower():
+            print(f"Already registered: {dest} (conflict)")
+        else:
+            print(f"ERROR creating {dest}: {e}")
+            raise
 
 # COMMAND ----------
 
@@ -184,34 +176,30 @@ for cfg in SYNC_CONFIG:
 
 DEMO_TAG = "renault-demo"
 
-# Tag the sync pipelines for cost tracking
+# Tag the sync pipelines for cost tracking + budget policy
 print("Tagging sync pipelines...\n")
 for cfg in SYNC_CONFIG:
     dest = f"{CATALOG}.car_sales.{cfg['table']}_synced"
-    resp = requests.get(f"{workspace_url}/api/2.0/database/synced_tables/{dest}", headers=headers)
-    if resp.status_code == 200:
-        pipeline_id = resp.json().get("data_synchronization_status", {}).get("pipeline_id")
-        if pipeline_id:
-            # Get current pipeline spec and add tags
-            pipe_resp = requests.get(f"{workspace_url}/api/2.0/pipelines/{pipeline_id}", headers=headers)
-            if pipe_resp.status_code == 200:
-                pipe_spec = pipe_resp.json().get("spec", {})
-                current_tags = pipe_spec.get("tags", {})
-                current_tags["project"] = DEMO_TAG
-                current_tags["customer"] = "renault"
-                requests.put(
-                    f"{workspace_url}/api/2.0/pipelines/{pipeline_id}",
-                    headers=headers,
-                    json={**pipe_spec, "tags": current_tags, "id": pipeline_id, "budget_policy_id": "f6600d78-0574-4e8d-bf50-3cc37acd4b02"}
-                )
-                print(f"  Tagged pipeline {pipeline_id} for {cfg['table']}_synced")
+    table = w.database.get_synced_database_table(name=dest)
+    pipeline_id = table.data_synchronization_status.pipeline_id
+    if pipeline_id:
+        pipe = w.pipelines.get(pipeline_id=pipeline_id)
+        current_tags = dict(pipe.spec.tags) if pipe.spec.tags else {}
+        current_tags["project"] = DEMO_TAG
+        current_tags["customer"] = "renault"
+        w.pipelines.update(
+            pipeline_id=pipeline_id,
+            tags=current_tags,
+            budget_policy_id=BUDGET_POLICY_ID,
+        )
+        print(f"  Tagged pipeline {pipeline_id} for {cfg['table']}_synced")
 
 print("\nWaiting for synced tables to come online...\n")
 for cfg in SYNC_CONFIG:
     dest = f"{CATALOG}.car_sales.{cfg['table']}_synced"
     for attempt in range(60):
-        resp = requests.get(f"{workspace_url}/api/2.0/database/synced_tables/{dest}", headers=headers)
-        state = resp.json().get("data_synchronization_status", {}).get("detailed_state", "UNKNOWN")
+        table = w.database.get_synced_database_table(name=dest)
+        state = table.data_synchronization_status.detailed_state.value if table.data_synchronization_status else "UNKNOWN"
         if "ONLINE" in state:
             print(f"  {cfg['table']}_synced: {state}")
             break
@@ -234,10 +222,9 @@ SP_CONFIGS = [
 ]
 
 # Create secret scope if needed
-scopes = [s.name for s in dbutils.secrets.listScopes()]
+scopes = [s.name for s in w.secrets.list_scopes()]
 if "renault-demo" not in scopes:
-    requests.post(f"{workspace_url}/api/2.0/secrets/scopes/create", headers=headers,
-                  json={"scope": "renault-demo"}).raise_for_status()
+    w.secrets.create_scope(scope="renault-demo")
 
 sp_credentials = []
 
@@ -254,7 +241,7 @@ for sp_cfg in SP_CONFIGS:
         sp_num_id = existing_sp.id
         print(f"SP '{sp_cfg['name']}' exists: {app_id}")
         # Check if secret is stored
-        stored_keys = [s.key for s in dbutils.secrets.list("renault-demo")]
+        stored_keys = [s.key for s in w.secrets.list_secrets(scope="renault-demo")]
         if f"{sp_cfg['name']}-secret" in stored_keys:
             secret = dbutils.secrets.get("renault-demo", f"{sp_cfg['name']}-secret")
             sp_credentials.append({"app_id": app_id, "secret": secret, **sp_cfg})
@@ -267,26 +254,25 @@ for sp_cfg in SP_CONFIGS:
         sp_num_id = new_sp.id
         print(f"Created SP '{sp_cfg['name']}': {app_id}")
 
-    # Create OAuth secret
+    # Create OAuth secret (no SDK method — use API)
+    token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
     secret_resp = requests.post(
         f"{workspace_url}/api/2.0/accounts/servicePrincipals/{sp_num_id}/credentials/secrets",
-        headers=headers
+        headers={"Authorization": f"Bearer {token}"}
     )
     secret_resp.raise_for_status()
     sp_secret = secret_resp.json()["secret"]
 
     # Store in secrets
-    requests.post(f"{workspace_url}/api/2.0/secrets/put", headers=headers,
-                  json={"scope": "renault-demo", "key": f"{sp_cfg['name']}-id", "string_value": app_id}).raise_for_status()
-    requests.post(f"{workspace_url}/api/2.0/secrets/put", headers=headers,
-                  json={"scope": "renault-demo", "key": f"{sp_cfg['name']}-secret", "string_value": sp_secret}).raise_for_status()
+    w.secrets.put_secret(scope="renault-demo", key=f"{sp_cfg['name']}-id", string_value=app_id)
+    w.secrets.put_secret(scope="renault-demo", key=f"{sp_cfg['name']}-secret", string_value=sp_secret)
 
     # Grant CAN_USE on Lakebase project
-    requests.patch(
-        f"{workspace_url}/api/2.0/permissions/database-projects/{project_uid}",
-        headers=headers,
-        json={"access_control_list": [{"service_principal_name": app_id, "permission_level": "CAN_USE"}]}
-    ).raise_for_status()
+    w.permissions.update(
+        request_object_type="database-projects",
+        request_object_id=project_uid,
+        access_control_list=[{"service_principal_name": app_id, "permission_level": "CAN_USE"}]
+    )
 
     sp_credentials.append({"app_id": app_id, "secret": sp_secret, **sp_cfg})
     print(f"  Secret stored, project access granted")
