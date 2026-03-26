@@ -7,14 +7,6 @@
 
 # COMMAND ----------
 
-# MAGIC %pip install --upgrade databricks-sdk --quiet
-
-# COMMAND ----------
-
-dbutils.library.restartPython()
-
-# COMMAND ----------
-
 import json
 from databricks.sdk import WorkspaceClient
 

@@ -29,14 +29,6 @@
 
 # COMMAND ----------
 
-# MAGIC %pip install --upgrade databricks-sdk psycopg2-binary --quiet
-
-# COMMAND ----------
-
-dbutils.library.restartPython()
-
-# COMMAND ----------
-
 # MAGIC %run ../generators/config
 
 # COMMAND ----------
@@ -184,14 +176,14 @@ for cfg in SYNC_CONFIG:
     pipeline_id = table.data_synchronization_status.pipeline_id
     if pipeline_id:
         pipe = w.pipelines.get(pipeline_id=pipeline_id)
-        current_tags = dict(pipe.spec.tags) if pipe.spec.tags else {}
+        spec = pipe.spec
+        current_tags = dict(spec.tags) if spec.tags else {}
         current_tags["project"] = DEMO_TAG
         current_tags["customer"] = "renault"
-        w.pipelines.update(
-            pipeline_id=pipeline_id,
-            tags=current_tags,
-            budget_policy_id=BUDGET_POLICY_ID,
-        )
+        # PUT replaces full spec — must send existing spec with updated fields
+        spec.tags = current_tags
+        spec.budget_policy_id = BUDGET_POLICY_ID
+        w.pipelines.update(pipeline_id=pipeline_id, **spec.as_dict())
         print(f"  Tagged pipeline {pipeline_id} for {cfg['table']}_synced")
 
 print("\nWaiting for synced tables to come online...\n")

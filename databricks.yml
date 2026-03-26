@@ -139,7 +139,9 @@ resources:
       environments:
         - environment_key: default
           spec:
-            client: "1"
+            client: "2"
+            dependencies:
+              - psycopg2-binary
 
     # ─── Job: daily incremental (run during demo) ───
     renault_daily:
@@ -177,4 +179,6 @@ resources:
       environments:
         - environment_key: default
           spec:
-            client: "1"
+            client: "2"
+            dependencies:
+              - psycopg2-binary
