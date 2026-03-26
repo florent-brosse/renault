@@ -8,6 +8,9 @@ variables:
   demo_tag:
     description: "Tag for cost tracking"
     default: renault-demo
+  budget_policy_id:
+    description: "Budget policy ID for serverless cost attribution"
+    default: f6600d78-0574-4e8d-bf50-3cc37acd4b02
 
 workspace:
   host: https://fevm-serverless-stable-le1wzb.cloud.databricks.com
@@ -43,6 +46,7 @@ resources:
       continuous: false
       development: true
       serverless: true
+      budget_policy_id: ${var.budget_policy_id}
       libraries:
         - notebook:
             path: ./pipeline/car_sales_pipeline.py
@@ -71,6 +75,7 @@ resources:
   jobs:
     renault_setup:
       name: "Renault Demo — Initial Setup"
+      budget_policy_id: ${var.budget_policy_id}
       tags:
         project: ${var.demo_tag}
         customer: renault
@@ -138,6 +143,7 @@ resources:
     # ─── Job: daily incremental (run during demo) ───
     renault_daily:
       name: "Renault Demo — Generate Next Day"
+      budget_policy_id: ${var.budget_policy_id}
       tags:
         project: ${var.demo_tag}
         customer: renault

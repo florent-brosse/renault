@@ -169,8 +169,10 @@ for cfg in SYNC_CONFIG:
     )
     if resp.status_code == 409:
         print(f"Already registered: {dest} (409 conflict)")
-    else:
+    elif not resp.ok:
+        print(f"ERROR creating {dest}: {resp.status_code} {resp.text}")
         resp.raise_for_status()
+    else:
         print(f"Created: {dest}")
 
 # COMMAND ----------

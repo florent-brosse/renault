@@ -269,7 +269,7 @@ df_fact_sales = df_sales.select(
     "listing_id", "sale_date", "concession_id", "group_id",
     "model_id", "brand", "model", "version", "segment",
     "year_immat", "km", "energy", "etat", "price", "nb_photos"
-)
+).dropDuplicates(["listing_id"])
 
 print(f"Car listings generated (writing to CSV...)")
 
