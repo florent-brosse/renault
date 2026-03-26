@@ -202,7 +202,7 @@ for cfg in SYNC_CONFIG:
                 requests.put(
                     f"{workspace_url}/api/2.0/pipelines/{pipeline_id}",
                     headers=headers,
-                    json={**pipe_spec, "tags": current_tags, "id": pipeline_id}
+                    json={**pipe_spec, "tags": current_tags, "id": pipeline_id, "budget_policy_id": "f6600d78-0574-4e8d-bf50-3cc37acd4b02"}
                 )
                 print(f"  Tagged pipeline {pipeline_id} for {cfg['table']}_synced")
 
