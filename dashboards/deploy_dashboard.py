@@ -9,6 +9,7 @@
 
 import json
 from databricks.sdk import WorkspaceClient
+from databricks.sdk.service.dashboards import Dashboard
 
 # Get catalog from widget
 try:
@@ -55,14 +56,16 @@ serialized = json.dumps(dashboard_def)
 
 if dashboard_id:
     # Update existing
-    w.lakeview.update(dashboard_id=dashboard_id, serialized_dashboard=serialized)
+    w.lakeview.update(dashboard_id=dashboard_id, dashboard=Dashboard(serialized_dashboard=serialized))
     print(f"Dashboard updated: {dashboard_id}")
 else:
     # Create new
     result = w.lakeview.create(
-        display_name=DASHBOARD_NAME,
-        parent_path=f"/Users/{current_user}",
-        serialized_dashboard=serialized,
+        dashboard=Dashboard(
+            display_name=DASHBOARD_NAME,
+            parent_path=f"/Users/{current_user}",
+            serialized_dashboard=serialized,
+        )
     )
     dashboard_id = result.dashboard_id
     print(f"Dashboard created: {dashboard_id}")
