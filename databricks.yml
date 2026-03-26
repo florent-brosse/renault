@@ -139,7 +139,7 @@ resources:
       environments:
         - environment_key: default
           spec:
-            client: "2"
+            client: "5"
             dependencies:
               - psycopg2-binary
 
@@ -179,6 +179,6 @@ resources:
       environments:
         - environment_key: default
           spec:
-            client: "2"
+            client: "5"
             dependencies:
               - psycopg2-binary
