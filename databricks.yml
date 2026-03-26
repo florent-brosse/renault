@@ -141,7 +141,7 @@ resources:
           spec:
             client: "5"
             dependencies:
-              - databricks-sdk
+              - databricks-sdk>=0.102.0
               - psycopg2-binary
 
     # ─── Job: daily incremental (run during demo) ───
@@ -182,5 +182,5 @@ resources:
           spec:
             client: "5"
             dependencies:
-              - databricks-sdk
+              - databricks-sdk>=0.102.0
               - psycopg2-binary
