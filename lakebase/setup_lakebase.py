@@ -275,10 +275,11 @@ for sp_cfg in SP_CONFIGS:
     w.secrets.put_secret(scope="renault-demo", key=f"{sp_cfg['name']}-secret", string_value=sp_secret)
 
     # Grant CAN_USE on Lakebase project
+    from databricks.sdk.service.iam import AccessControlRequest, PermissionLevel
     w.permissions.update(
         request_object_type="database-projects",
         request_object_id=project_uid,
-        access_control_list=[{"service_principal_name": app_id, "permission_level": "CAN_USE"}]
+        access_control_list=[AccessControlRequest(service_principal_name=app_id, permission_level=PermissionLevel.CAN_USE)]
     )
 
     sp_credentials.append({"app_id": app_id, "secret": sp_secret, **sp_cfg})
