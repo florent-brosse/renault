@@ -36,7 +36,6 @@
 import json, time, requests, psycopg2
 import pandas as pd
 from databricks.sdk import WorkspaceClient
-from databricks.sdk.service.database import SyncedTableSpec, SyncedTableSchedulingPolicy
 
 w = WorkspaceClient()
 workspace_url = w.config.host.rstrip("/")
@@ -140,17 +139,27 @@ for cfg in SYNC_CONFIG:
         pass
 
     try:
-        w.database.create_synced_database_table(
-            name=dest,
-            database_project_id=project_uid,
-            database_branch_id=branch_uid,
-            logical_database_name="databricks_postgres",
-            spec=SyncedTableSpec(
-                source_table_full_name=source,
-                primary_key_columns=cfg["pk"],
-                scheduling_policy=SyncedTableSchedulingPolicy.SNAPSHOT,
-            ),
+        # Lakebase Autoscaling (postgres_projects) uses the legacy synced_tables API
+        # SDK database.create_synced_database_table only supports Provisioned (database_instances)
+        resp = requests.post(
+            f"{workspace_url}/api/2.0/database/synced_tables",
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "name": dest,
+                "database_project_id": project_uid,
+                "database_branch_id": branch_uid,
+                "logical_database_name": "databricks_postgres",
+                "spec": {
+                    "source_table_full_name": source,
+                    "primary_key_columns": cfg["pk"],
+                    "scheduling_policy": "SNAPSHOT",
+                },
+            },
         )
+        if resp.status_code == 409:
+            print(f"Already registered: {dest} (conflict)")
+            continue
+        resp.raise_for_status()
         print(f"Created: {dest}")
     except Exception as e:
         if "409" in str(e) or "already exists" in str(e).lower():
@@ -175,15 +184,21 @@ for cfg in SYNC_CONFIG:
     table = w.database.get_synced_database_table(name=dest)
     pipeline_id = table.data_synchronization_status.pipeline_id
     if pipeline_id:
-        pipe = w.pipelines.get(pipeline_id=pipeline_id)
-        spec = pipe.spec
-        current_tags = dict(spec.tags) if spec.tags else {}
-        current_tags["project"] = DEMO_TAG
-        current_tags["customer"] = "renault"
-        # PUT replaces full spec — must send existing spec with updated fields
-        spec.tags = current_tags
-        spec.budget_policy_id = BUDGET_POLICY_ID
-        w.pipelines.update(pipeline_id=pipeline_id, **spec.as_dict())
+        # SDK as_dict() drops managed_definition (not in PipelineSpec model).
+        # Sync pipelines need the full raw spec including managed_definition.
+        pipe_resp = requests.get(
+            f"{workspace_url}/api/2.0/pipelines/{pipeline_id}",
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        pipe_resp.raise_for_status()
+        spec = pipe_resp.json()["spec"]
+        spec["tags"] = {**(spec.get("tags") or {}), "project": DEMO_TAG, "customer": "renault"}
+        spec["budget_policy_id"] = BUDGET_POLICY_ID
+        requests.put(
+            f"{workspace_url}/api/2.0/pipelines/{pipeline_id}",
+            headers={"Authorization": f"Bearer {token}"},
+            json=spec
+        ).raise_for_status()
         print(f"  Tagged pipeline {pipeline_id} for {cfg['table']}_synced")
 
 print("\nWaiting for synced tables to come online...\n")

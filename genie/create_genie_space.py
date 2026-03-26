@@ -12,26 +12,14 @@ import json
 from databricks.sdk import WorkspaceClient
 
 dbutils.widgets.text("catalog", "renault_demo", "Catalog name")
+dbutils.widgets.text("warehouse_id", "", "SQL Warehouse ID")
 CATALOG = dbutils.widgets.get("catalog")
 SCHEMA = "car_sales"
+warehouse_id = dbutils.widgets.get("warehouse_id")
+assert warehouse_id, "warehouse_id parameter is required"
 
 w = WorkspaceClient()
-
-# ─── Find a SQL warehouse ───
-warehouse_id = None
-for wh in w.warehouses.list():
-    if wh.warehouse_type and "PRO" in str(wh.warehouse_type).upper():
-        warehouse_id = wh.id
-        print(f"Using warehouse: {wh.name} ({wh.id})")
-        break
-
-if not warehouse_id:
-    all_wh = list(w.warehouses.list())
-    if all_wh:
-        warehouse_id = all_wh[0].id
-        print(f"Fallback warehouse: {all_wh[0].name} ({warehouse_id})")
-    else:
-        raise Exception("No SQL warehouse found. Create one first.")
+print(f"Using warehouse: {warehouse_id}")
 
 # COMMAND ----------
 

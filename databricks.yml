@@ -124,6 +124,7 @@ resources:
             source: WORKSPACE
             base_parameters:
               catalog: ${var.catalog}
+              warehouse_id: ${resources.sql_warehouses.renault_warehouse.id}
           environment_key: default
 
         - task_key: deploy_dashboard
@@ -134,6 +135,7 @@ resources:
             source: WORKSPACE
             base_parameters:
               catalog: ${var.catalog}
+              warehouse_id: ${resources.sql_warehouses.renault_warehouse.id}
           environment_key: default
 
       environments:

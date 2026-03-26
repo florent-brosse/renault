@@ -13,9 +13,14 @@ from databricks.sdk import WorkspaceClient
 # Get catalog from widget
 try:
     dbutils.widgets.text("catalog", "renault_demo", "Catalog name")
+    dbutils.widgets.text("warehouse_id", "", "SQL Warehouse ID")
     CATALOG = dbutils.widgets.get("catalog")
+    WAREHOUSE_ID = dbutils.widgets.get("warehouse_id")
 except Exception:
     CATALOG = "renault_demo"
+    WAREHOUSE_ID = ""
+
+assert WAREHOUSE_ID, "warehouse_id parameter is required"
 
 # Load dashboard definition and replace catalog placeholder
 with open("/Workspace" + dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get().rsplit("/", 1)[0] + "/renault_car_sales_dashboard.json") as f:
@@ -73,7 +78,7 @@ print(f"URL: {host}/sql/dashboardsv3/{dashboard_id}")
 # COMMAND ----------
 
 try:
-    w.lakeview.publish(dashboard_id=dashboard_id)
+    w.lakeview.publish(dashboard_id=dashboard_id, warehouse_id=WAREHOUSE_ID)
     print("Dashboard published successfully")
 except Exception as e:
     print(f"Could not publish (OK for draft): {e}")
