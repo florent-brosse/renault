@@ -75,6 +75,7 @@ resources:
   jobs:
     renault_setup:
       name: "Renault Demo — Initial Setup"
+      performance_target: PERFORMANCE_OPTIMIZED # or STANDARD
       budget_policy_id: ${var.budget_policy_id}
       tags:
         project: ${var.demo_tag}
@@ -149,6 +150,7 @@ resources:
     # ─── Job: daily incremental (run during demo) ───
     renault_daily:
       name: "Renault Demo — Generate Next Day"
+      performance_target: PERFORMANCE_OPTIMIZED # or STANDARD
       budget_policy_id: ${var.budget_policy_id}
       tags:
         project: ${var.demo_tag}
